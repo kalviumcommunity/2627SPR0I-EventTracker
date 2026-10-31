@@ -1,295 +1,357 @@
-# EventTracker PRD
+# EventTracker – Product Requirements Document (PRD)
 
 ## 1. Product Overview
 
-EventTracker is a web application that helps event organisers assign duties to volunteers and track their completion status through a centralized board.
+EventTracker is a web application that helps campus event organisers create event boards, assign duties to volunteers and track their progress through a centralized platform.
 
-The application provides a shared view of all event duties, their assigned owners, and their current progress. Organisers can access the latest board from different devices without depending on the laptop used to create it.
+Organisers can create boards, assign tasks and invite volunteers using invitation codes. Volunteers can join boards, view their responsibilities, update task statuses and submit progress updates.
 
-**Product Type:** Web Application\
-**Target Environment:** Single Campus Event\
+The application provides a shared platform for managing event duties and monitoring their completion.
+
+**Product Type:** Web Application
+
+**Target Environment:** Campus Events
+
 **Version:** MVP 1.0
 
 ## 2. Business Problem Statement
 
-During campus events, organisers communicate volunteer assignments and progress updates through multiple channels, including chats and personal messages.
+During campus events, organisers manage volunteer assignments and progress updates through multiple channels, such as chats and personal messages.
 
-As a result:
+This creates difficulties in tracking responsibilities, identifying incomplete tasks and monitoring volunteer progress.
 
-- Organisers cannot easily identify incomplete duties.
-- It is difficult to track who is responsible for each duty.
-- Updates are scattered across different conversations.
-- Organisers must spend additional time following up with volunteers.
-- Assignment information may become unavailable when it is stored only on an individual's laptop.
-
-**Goal:** Provide a centralized duty board where organisers can assign responsibilities, identify task owners, and monitor completion status.
+**Goal:** Provide a centralized platform where organisers can assign duties, invite volunteers and monitor event progress.
 
 **Primary Users:** Campus event organisers.
 
 **Secondary Users:** Volunteers participating in the event.
 
-**Success Criteria:** Organisers can view all assigned duties, identify incomplete work, access the latest board from another device, and retain saved assignments after an application restart or failed release.
-
-
-
-
+**Success Criteria:** Organisers can manage assignments, monitor progress and access the latest event information across devices without losing saved data.
 
 ## 3. Stakeholder Identification
 
-| **Stakeholder**    | **Role**                                              |
-| ------------------ | ----------------------------------------------------- |
-| Event Organisers   | Create duties, assign volunteers and monitor progress |
-| Volunteers         | View assigned duties and update completion status     |
-| Project Developers | Build, test and maintain the application              |
+| **Stakeholder**    | **Role**                                         |
+| ------------------ | ------------------------------------------------ |
+| Event Organisers   | Create boards, assign tasks and monitor progress |
+| Volunteers         | Join boards, view duties and submit updates      |
+| Project Developers | Develop and maintain the application             |
+| Event Coordinator  | Reviews and approves the application             |
 
-**Primary Decision Maker:** Event organiser, who confirms whether the board meets the event's requirements.
+**Primary Decision Maker:** Event organiser or event coordinator.
 
 ## 4. Business Impact
 
-**Operational Impact:** Organisers can view duty assignments and completion statuses in one place instead of searching through multiple conversations.
+- **Operational Impact:** Centralizes event assignments and reduces the need to track duties through multiple conversations.
+- **User Impact:** Gives volunteers clear responsibilities and organisers better visibility into task progress.
+- **Reliability Impact:** Keeps event information accessible across devices and protects saved data through persistent database storage.
 
-**User Impact:** Volunteers have a clear view of their responsibilities and organisers can identify duties that still require attention.
+**Note:** Financial impact and time savings have not been quantified.
 
-**Reliability Impact:** Centralized, persistent storage prevents assignment information from depending on a single laptop or being lost during an application redeployment.
+## 5. Product Objectives
 
-*Note: Financial impact and time savings have not been quantified because no user research or baseline measurements have been conducted.*
+The primary objectives of EventTracker are:
 
-## 5. Data Requirements
+- Centralize event duty assignments.
+- Allow organisers to create boards and assign tasks.
+- Enable volunteers to join boards through invitation codes.
+- Allow volunteers to update task statuses and submit progress updates.
+- Help organisers monitor task completion.
+- Maintain saved information across application restarts.
 
-| **Data**       | **Description**                         |
-| -------------- | --------------------------------------- |
-| Duty ID        | Unique identifier for each duty         |
-| Duty Title     | Name of the assigned task               |
-| Description    | Details about the duty                  |
-| Volunteer Name | Person responsible for the duty         |
-| Event ID       | Identifies the associated event         |
-| Status         | Current completion status               |
-| Created At     | Date and time the duty was created      |
-| Updated At     | Date and time the duty was last updated |
+**Expected Outcomes:**
 
-The application will store the following information:**Data Source:** Information entered by event organisers and status updates submitted by users.
+- Organisers can view all duties and their current status.
+- Volunteers can access and update their responsibilities.
+- Progress updates remain available to organisers.
+- Event information remains accessible across supported devices.
 
-**Storage:** A persistent database.
+## 6. Data Requirements
 
-**Data Ownership:** The project team is responsible for implementing and maintaining the application data.
+The application will maintain the following categories of information:
 
-**Validation Status:** The data fields are proposed for the MVP. Their final structure will be confirmed during implementation.
+- **User Information:** Account and authentication details.
+- **Board Information:** Board details, owners, members and invitation codes.
+- **Task Information:** Task descriptions, assigned volunteers, deadlines and statuses.
+- **Progress Information:** Written updates and their submission details.
 
-## 6. KPIs and Success Metrics
+**Data Source:** Information entered by organisers and volunteers.
 
-The following are proposed MVP acceptance targets, not measured business outcomes.
+**Storage:** MongoDB with persistent storage.
 
-| **Metric**          | **Measurement**                                             | **Target**                     | **Timeline**   |
-| ------------------- | ----------------------------------------------------------- | ------------------------------ | -------------- |
-| Duty Creation       | Successfully created duties                                 | 100% of valid test submissions | Before release |
-| Assignment Accuracy | Duties displaying the correct owner                         | 100% of test cases             | Before release |
-| Status Updates      | Updated statuses correctly displayed                        | 100% of test cases             | Before release |
-| Cross-Device Access | Latest board accessible from another device                 | Successful verification        | Before release |
-| Data Persistence    | Saved assignments retained after restart and failed release | 100% of test cases             | Before release |
+**Data Validation:** The application will validate user inputs, invitation codes, task assignments and progress updates.
 
-## 7. User Stories
+**Data Security:** Passwords will be securely hashed, and access to information will be controlled through authentication and permissions.
 
-**US-01: Create a Duty**
+## 7. KPIs and Success Metrics
 
-As an event organiser, I want to create a duty with a title and description, so that volunteer responsibilities can be recorded centrally.
+The following are proposed MVP success criteria.
 
-**Acceptance Criteria:**
+| **Metric**          | **Success Measure**                                          |
+| ------------------- | ------------------------------------------------------------ |
+| Board Creation      | Organisers can successfully create boards                    |
+| Task Management     | Tasks can be created and assigned correctly                  |
+| Progress Tracking   | Task statuses and written updates are saved and displayed    |
+| User Access         | Organisers and volunteers can access their boards            |
+| Cross-Device Access | Latest information is accessible from another device         |
+| Data Persistence    | Saved information remains available after container restarts |
 
-- The organiser can enter a duty title and description.
-- The system saves the duty.
-- The created duty appears on the board.
+## 8. User Stories and Acceptance Criteria
 
-**US-02: Assign a Volunteer**
+**US-01: User Authentication**
 
-As an event organiser, I want to assign a volunteer to a duty, so that responsibility for each task is clear.
+As a user, I want to register and log in so that I can access the application.
 
-**Acceptance Criteria:**
+- Users can register and log in successfully.
+- Passwords are stored securely.
 
-- The organiser can specify a volunteer's name.
-- The assigned volunteer is displayed alongside the duty.
-- Each duty has a clearly identifiable owner.
+**US-02: Board Management**
 
-**US-03: Update Duty Status**
+As an organiser, I want to create boards and invite volunteers so that event responsibilities can be managed centrally.
 
-As a volunteer, I want to update the status of my assigned duty, so that organisers can track its progress.
+- Organisers can create boards.
+- Unique invitation codes are generated.
+- Volunteers can join using valid codes.
 
-**Acceptance Criteria:**
+**US-03: Task Assignment**
 
-- A duty can have Pending, In Progress, or Completed status.
-- The updated status is saved.
-- The latest status is visible on the board.
+As an organiser, I want to create tasks and assign volunteers so that responsibilities are clearly distributed.
 
-**US-04: View the Duty Board**
+- Organisers can create and assign tasks to board members.
+- Assigned volunteers and task details are displayed.
 
-As an event organiser, I want to view all duties, owners, and statuses in one place, so that I can quickly identify incomplete work.
+**US-04: Progress Tracking**
 
-**Acceptance Criteria:**
+As a volunteer, I want to update my task status and submit progress updates.
 
-- All saved duties appear on the board.
-- Each duty displays its title, owner, and status.
-- Incomplete duties can be identified easily.
+- Volunteers can update their assigned tasks.
+- Available statuses are Pending, In Progress and Completed.
+- Written progress updates are saved with their history.
 
-**US-05: Access the Latest Board**
+**US-05: Board Monitoring**
 
-As an event organiser, I want to access the board from another device, so that I do not depend on the original author's laptop.
+As an organiser, I want to view all tasks and their progress.
 
-**Acceptance Criteria:**
+- Organisers can view assignments, volunteers and statuses.
+- Organisers can view submitted progress updates.
 
-- The application is accessible through a deployed web address.
-- The latest saved assignments are visible from another device.
+**US-06: Data Availability**
 
-**US-06: Preserve Saved Assignments**
+As a user, I want my event information to remain available across devices and application restarts.
 
-As an event organiser, I want saved assignments to remain intact after application restarts or failed releases, so that event information is not lost.
+- The latest saved information is accessible across devices.
+- Application and database container restarts do not erase saved information when the existing persistent volume is retained.
 
-**Acceptance Criteria:**
+## 9. Feature Scope
+
+**In Scope – MVP 1.0**
+
+- User registration and login.
+- Event board creation.
+- Invitation code generation and board joining.
+- Task creation and volunteer assignment.
+- Task status management.
+- Written progress updates.
+- Centralized event duty board.
+- MongoDB data storage.
+- Docker containerization and Docker Compose.
+
+**Out of Scope – MVP 1.0**
 
-- Assignments are stored in persistent database storage.
-- Restarting the application does not delete assignments.
-- Deploying a new application version does not overwrite or erase existing assignments.
-- A failed release can be rolled back without losing saved assignments.
+- AI-based task assignment.
+- Automated notifications.
+- Volunteer attendance tracking.
+- Payment management.
+- Advanced analytics.
+- Real-time chat.
+- Dedicated mobile application.
+- File attachments.
+
+**MVP Limitation:** The initial version focuses on event duty management and progress tracking rather than a complete event management platform.
+
+## 10. Application Workflow
 
-## 8. Feature Scope
-
-### In Scope — MVP 1.0
-
-1. Create volunteer duties.
-2. Assign volunteers to duties.
-3. Display duty owners and descriptions.
-4. Track Pending, In Progress, and Completed statuses.
-5. View all assignments on a centralized board.
-6. Access the latest board through a deployed web application.
-7. Store assignments in persistent database storage.
-
-### Out of Scope — MVP 1.0
-
-1. AI-based volunteer assignment.
-2. Automated email, SMS, or push notifications.
-3. Volunteer attendance tracking.
-4. Payment management.
-5. Advanced analytics and reporting.
-6. Automated scheduling.
-7. Multiple event management.
-8. Mobile application.
-
-## 9. Application Workflow
-
-1. The organiser opens the web application.
-2. The organiser creates a duty.
-3. The organiser assigns a volunteer to the duty.
-4. The application saves the assignment in the database.
-5. The duty appears on the centralized board.
-6. The volunteer views the assigned duty and updates its status.
-7. The updated status is saved and displayed on the board.
-8. The organiser accesses the latest board from any supported device.
-
-## 10. Technical Workflow
-
-**Proposed application architecture:**
-
-1. **Frontend:** Displays the duty board and provides forms for creating assignments and updating statuses.
-2. **Backend:** Handles duty creation, assignment, retrieval, and status updates.
-3. **Database:** Stores duties, volunteer assignments, and completion statuses persistently.
-4. **Deployment:** Hosts the application so that organisers can access it through a shared web address.
-
-**Data Flow:**
-
-User → Frontend → Backend API → Database
-
-When information is requested:
-
-Database → Backend API → Frontend → Updated Duty Board
-
-**Data Persistence Requirement:** Application deployment and database storage must be independent. Application restarts, updates, or rollbacks must not delete previously saved assignments.
-
-**Dockerization:** The application will be containerized using Docker so that it can run consistently across development and deployment environments.
-
-- Create a Dockerfile to define the application image and its runtime dependencies.
-- Use Docker Compose to configure and run the frontend, backend, and database services together.
-- Configure the services to communicate through a Docker network.
-- Store configuration such as ports and database connection details in environment variables rather than hard-coding them.
-- Use a named Docker volume for MongoDB data so that assignments remain available when database containers are restarted or recreated.
-- Configure a health check to verify that the application is running correctly.
-
-**Release Failure Handling:** Application containers and database storage must remain separate. If a new application image fails, the team should be able to return to the previous working image while reconnecting to the existing database volume. Deployment or rollback commands must not remove the persistent database volume.
-
-## 11. Risks and Assumptions
-
-| **Risk / Assumption**                          | **Impact**                                              | **Mitigation**                                                                                                 |
-| ---------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Internet connectivity may be unavailable       | Users may not access or update the board                | Clearly communicate the requirement for internet access                                                        |
-| Database storage may be incorrectly configured | Saved assignments could be lost during deployment       | Use persistent database storage and test redeployment                                                          |
-| Volunteers may not update statuses             | Organisers may see outdated progress                    | Keep status updates simple and easy to access                                                                  |
-| Multiple users may update the same duty        | Conflicting updates may occur                           | Ensure updates are saved and the latest stored value is displayed                                              |
-| Docker configuration or container failure      | The application may fail to start or become unavailable | Validate Docker images and Compose configuration, and use health checks and a known working image for recovery |
-
-**Assumptions to Validate:**
-
-- Organisers are willing to use a centralized board.
-- Volunteers can access the board through a shared web address.
-- Three simple completion statuses are sufficient for the event.
-- A single-event duty board is sufficient for the initial version.
-
-## 12. Basic Interface / Wireframe Plan
-
-The initial application will contain one main duty board.
-
-**Header:**
-
-- Application name: EventTracker.
-- Event name.
-
-**Duty Board:**
-
-| **Duty**          | **Assigned To** | **Status**  |
-| ----------------- | --------------- | ----------- |
-| Stage Setup       | Volunteer A     | Pending     |
-| Registration Desk | Volunteer B     | In Progress |
-| Decoration        | Volunteer C     | Completed   |
-
-**Main Actions:**
-
-- Add Duty
-- Assign Volunteer
-- Update Status
-
-The interface will prioritize clear task ownership and easy status identification.
-
-## 13. Dependencies
-
-- A working frontend and backend.
-- A database with persistent storage.
-- A deployment environment accessible to organisers and volunteers.
-- Docker installed in the development and deployment environments, with Docker Compose available.
-- Persistent storage support for the database container.
-- Internet connectivity for accessing and updating the board.
-
-## 14. Release and Validation Plan
-
-Before the MVP is considered complete, the team will verify:
-
-1. A new duty can be created.
-2. A volunteer can be assigned to a duty.
-3. Duty status can be updated.
-4. The latest status is displayed correctly.
-5. The board can be accessed from another device.
-6. The application images build successfully and the services start using Docker Compose.
-7. The frontend, backend, and database containers can communicate as expected.
-8. Saved assignments remain after an application and database container restart.
-9. Saved assignments remain available after database container recreation using the existing persistent volume.
-10. A failed application release can be rolled back to the previous working image without deleting or losing saved assignments.
-
-## 15. Final Acceptance Criteria
-
-The MVP is ready for release when:
-
-- Organisers can create and assign volunteer duties.
-- Each duty displays its owner and completion status.
-- Incomplete duties can be identified from the board.
-- Volunteers can update their assigned duties.
-- The latest board is accessible without the original author's laptop.
-- Saved assignments survive application restarts and failed releases.
-
-**Final Product Scope:** A simple, shared, web-based duty management board for one campus event, providing clear volunteer responsibilities, completion tracking, and reliable assignment storage.
-
-
+1. Organiser registers or logs in.
+2. Organiser creates an event board.
+3. System generates an invitation code.
+4. Volunteers join using the invitation code.
+5. Organiser creates and assigns tasks.
+6. Volunteers view their tasks and update their progress.
+7. Organiser monitors task statuses and progress updates.
+8. All information is saved and remains accessible across supported devices.
+
+## 11. Technical Workflow
+
+### Proposed Application Architecture
+
+- **Frontend:** User interface for authentication, board management and task tracking.
+- **Backend:** Handles application logic, authentication, board management and task operations.
+- **Database:** Stores user, board, task and progress information.
+- **Deployment:** Makes the application accessible through a shared web address.
+
+### Technology Stack
+
+| **Component**         | **Technology**          |
+| --------------------- | ----------------------- |
+| Frontend              | React.js                |
+| Backend               | Node.js with Express.js |
+| Database              | MongoDB                 |
+| Authentication        | JWT and bcrypt          |
+| API Communication     | REST APIs               |
+| Containerization      | Docker                  |
+| Service Orchestration | Docker Compose          |
+| Deployment            | Vercel / Render         |
+
+### API Requirements
+
+The backend will provide REST APIs for:
+
+- User authentication.
+- Board creation and management.
+- Volunteer board joining.
+- Task creation, assignment and retrieval.
+- Task status updates and progress tracking.
+
+The APIs will enforce authentication, input validation and access permissions.
+
+**External API Integration:** No external third-party APIs are required or used in the initial MVP. The application uses its own REST APIs for frontend and backend communication.
+
+### Dockerization
+
+The application will use Docker to provide consistent development and deployment environments.
+
+- Separate Dockerfiles for frontend and backend.
+- MongoDB running as a separate service using its official Docker image.
+- Docker Compose to manage all application services.
+- Dedicated Docker network for service communication.
+- Environment variables for application configuration and credentials.
+- Named Docker volume for persistent MongoDB storage.
+- Health checks for service availability.
+
+**Data Persistence Requirement:** Recreating or restarting application containers must not delete saved database information. MongoDB data must remain available through its existing named volume.
+
+## 12. Risks, Security and Assumptions
+
+| **Risk**                     | **Mitigation**                                                               |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| Internet connectivity issues | Require internet access for application usage                                |
+| Database data loss           | Configure persistent MongoDB storage                                         |
+| Unauthorized board access    | Enforce authentication and board membership permissions                      |
+| Incorrect task updates       | Restrict updates to assigned volunteers                                      |
+| Invalid user input           | Validate data on frontend and backend                                        |
+| Docker service failure       | Configure health checks and service dependencies                             |
+| Exposed credentials          | Store secrets in environment variables and exclude them from version control |
+
+### Assumptions
+
+- Organisers and volunteers can access the application through a web address.
+- Volunteers will join boards using invitation codes.
+- Three task statuses are sufficient for the MVP.
+- Each task will have one assigned volunteer.
+- All board members can view tasks, but only authorized users can modify them.
+- Internet connectivity will be available.
+
+**Privacy Consideration:** Only information required for user accounts and event management will be collected.
+
+## 13. Basic Wireframe Plan
+
+The interface will prioritize simplicity, clear task ownership and easy progress tracking.
+
+## 14. Dependencies
+
+- React.js and Node.js/Express.js development environments.
+- MongoDB database.
+- JWT and bcrypt authentication dependencies.
+- Docker and Docker Compose.
+- Environment variables for application configuration.
+- Persistent storage for MongoDB.
+- Deployment environment supporting the selected application services.
+- Internet connectivity.
+
+## 15. Delivery and Release Plan
+
+### Team Responsibilities and Delivery Timeline
+
+| **Week**     | **Development Area**                       | **Responsible Member** | **Assigned Tasks**                                                                  | **Deadline** |
+| ------------ | ------------------------------------------ | ---------------------- | ----------------------------------------------------------------------------------- | ------------ |
+| **1st Week** | Backend API Development                    | Yohan                  | Authentication functionality                                                        | 1st week     |
+| <br>         | <br>                                       | Ain                    | Board management functionality                                                      | 1st week     |
+| <br>         | <br>                                       | Rishitha               | Task management and progress tracking functionality                                 | 1st week     |
+| **2nd Week** | Frontend Development                       | Yohan                  | Signup Page and Login Page                                                          | 2nd week     |
+| <br>         | <br>                                       | Ain                    | Dashboard Page, Create Board Page and Join Board Page                               | 2nd week     |
+| <br>         | <br>                                       | Rishitha               | Board Tasks Page, Create Task Page, Task Details Page and Progress Updates Section  | 2nd week     |
+| **3rd Week** | Database Design and Integration            | Yohan                  | Users collection and authentication data                                            | 3rd week     |
+| <br>         | <br>                                       | Ain                    | Boards collection, invitation codes, owners and members                             | 3rd week     |
+| <br>         | <br>                                       | Rishitha               | Tasks and Progress Updates collections                                              | 3rd week     |
+| **4th Week** | Docker and Containerization                | Yohan                  | Frontend Dockerfile                                                                 | 4th week     |
+| <br>         | <br>                                       | Ain                    | Docker Compose, MongoDB service, network and persistent volume                      | 4th week     |
+| <br>         | <br>                                       | Rishitha               | Backend Dockerfile, environment variables and database connection configuration     | 4th week     |
+| **5th Week** | Application Integration and Final Delivery | Project Team           | Integrate all components, verify application workflows and prepare final deployment | 5th week     |
+
+### Delivery Approach
+
+**Phase 1 – Application Development (Weeks 1–3)**
+
+- Develop backend functionality.
+- Build the required frontend pages.
+- Design and integrate database collections.
+- Connect the frontend, backend and database.
+
+**Phase 2 – Containerization (Week 4)**
+
+- Create frontend and backend Dockerfiles.
+- Configure Docker Compose.
+- Configure MongoDB persistent storage.
+- Set up service communication and health checks.
+
+**Phase 3 – Integration and Final Delivery (Week 5)**
+
+- Integrate all application components.
+- Verify the main application workflows.
+- Run the application using Docker Compose.
+- Demonstrate data persistence after container restarts.
+- Prepare the final application deployment.
+
+### Validation and Demonstration
+
+The team will validate the main application workflows, including:
+
+- Registration and login.
+- Board creation and volunteer joining.
+- Task creation and assignment.
+- Task status and progress updates.
+- Organiser access to task progress.
+- Cross-device access.
+- Data persistence after container restarts.
+
+### Expected Deliverables
+
+- Working EventTracker web application.
+- Frontend and backend source code.
+- MongoDB integration.
+- REST API implementation.
+- Frontend and backend Dockerfiles.
+- Docker Compose configuration.
+- Persistent database storage configuration.
+- Deployed application.
+- README with setup and execution instructions.
+
+**Deployment Environment:** To be finalized.
+
+## 16. Final Acceptance Criteria
+
+The MVP will be considered ready for release when:
+
+- Users can register and log in.
+- Organisers can create boards and invite volunteers.
+- Volunteers can join boards using invitation codes.
+- Organisers can create and assign tasks.
+- Volunteers can update their assigned task statuses.
+- Volunteers can submit written progress updates.
+- Organisers can view all assignments and progress.
+- Unauthorized users cannot access or modify restricted information.
+- The application runs using Docker Compose.
+- Frontend, backend and database services communicate correctly.
+- MongoDB uses persistent storage.
+- Saved information remains available after application and database container restarts, provided the existing volume is retained.
+
+**Final Product Scope:** EventTracker is a centralized campus event duty management application that simplifies volunteer assignments, task tracking and progress monitoring through a web-based platform with Docker-based deployment and persistent data storage.
