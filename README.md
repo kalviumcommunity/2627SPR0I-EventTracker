@@ -2,6 +2,14 @@
 
 EventTracker is a web application for managing volunteer duties during campus events. It gives organisers and volunteers a centralized place to manage event boards, assign tasks, track progress, and view updates.
 
+## Start Here
+
+For local setup checks and prerequisites, see [SETUP.md](SETUP.md). To start the current frontend, run `npm install` and then `npm run dev` from the `frontend` directory. The backend does not yet define a start command.
+
+## Incident Tracking
+
+The repository's [team board](Docs/team-board.md) points to a clearly labeled [demo incident](Docs/mock-incident.md). It is fictional and is only for practicing the branch-and-PR workflow; replace it with the team's assigned incident before submitting the course assignment.
+
 ## Problem Statement
 
 During campus events, organisers often share volunteer assignments and progress updates across multiple chats and personal messages. This makes it difficult to identify incomplete duties, confirm who is responsible for each task, and keep track of the latest updates.
