@@ -94,7 +94,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/:userId?" element={<Dashboard />} />
         <Route path="/boards/new" element={<CreateBoard />} />
         <Route path="/boards/join" element={<JoinBoard />} />
         <Route path="/boards/:boardId" element={<BoardDetails />} />
