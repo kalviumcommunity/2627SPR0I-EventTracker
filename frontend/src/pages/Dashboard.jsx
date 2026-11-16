@@ -1,12 +1,38 @@
 
 import { ArrowUpRight, CalendarDays, MapPin, Plus, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { getBoards } from '../data'
 import { useAuth } from '../context/useAuth'
+import { api } from '../services/api'
 
 function Dashboard() {
   const { user, loading } = useAuth()
   const { userId } = useParams()
+
+  const [boards, setBoards] = useState([])
+  const [boardsLoading, setBoardsLoading] = useState(true)
+  const [boardsError, setBoardsError] = useState('')
+
+  useEffect(() => {
+    if (!user) return
+
+    async function fetchBoards() {
+      try {
+        setBoardsLoading(true)
+        setBoardsError('')
+
+        const response = await api.get('/boards/my-boards')
+        setBoards(response.boards || [])
+      } catch (error) {
+        console.error('Unable to fetch your boards:', error)
+        setBoardsError(error.message || 'Unable to load your boards.')
+      } finally {
+        setBoardsLoading(false)
+      }
+    }
+
+    fetchBoards()
+  }, [user])
 
   if (loading) {
     return <main className="app-page">Loading your dashboard...</main>
@@ -20,9 +46,23 @@ function Dashboard() {
     return <Navigate to={`/dashboard/${user.id}`} replace />
   }
 
-  const boards = getBoards()
-  const totalTasks = boards.reduce((total, board) => total + board.tasks, 0)
-  const completedTasks = boards.reduce((total, board) => total + board.completed, 0)
+  const organisedBoards = boards.filter(
+    (board) => board.role === 'organiser'
+  ).length
+
+  const joinedBoards = boards.filter(
+    (board) => board.role === 'volunteer'
+  ).length
+
+  function formatDate(date) {
+    if (!date) return 'Date to be announced'
+
+    return new Date(date).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
 
   return (
     <main className="app-page dashboard-page">
@@ -75,12 +115,14 @@ function Dashboard() {
           <h2 style={{ margin: '4px 0' }}>{user.name}</h2>
           <p style={{ margin: '0 0 4px' }}>{user.email}</p>
           <small>
-            Joined {new Date(user.createdAt).toLocaleDateString()}
+            Joined {user.createdAt
+              ? new Date(user.createdAt).toLocaleDateString()
+              : 'recently'}
           </small>
         </div>
       </section>
 
-      {/* Existing Dashboard UI */}
+      {/* Dashboard Heading */}
       <div className="page-heading dashboard-heading">
         <div>
           <span className="eyebrow">YOUR EVENT WORKSPACE</span>
@@ -93,29 +135,28 @@ function Dashboard() {
         </Link>
       </div>
 
+      {/* Real Board Statistics */}
       <section className="stats-grid" aria-label="Workspace overview">
         <article className="stat-card">
           <span>ACTIVE BOARDS</span>
           <strong>{boards.length.toString().padStart(2, '0')}</strong>
-          <small>Events in your workspace</small>
+          <small>Boards in your workspace</small>
         </article>
 
         <article className="stat-card">
-          <span>TASKS COMPLETED</span>
-          <strong>
-            {completedTasks}
-            <small> / {totalTasks}</small>
-          </strong>
-          <small>Keep the momentum going</small>
+          <span>BOARDS YOU ORGANISE</span>
+          <strong>{organisedBoards.toString().padStart(2, '0')}</strong>
+          <small>Events you created</small>
         </article>
 
         <article className="stat-card">
-          <span>YOUR CREW</span>
-          <strong>12</strong>
-          <small>Volunteers across your events</small>
+          <span>BOARDS YOU'VE JOINED</span>
+          <strong>{joinedBoards.toString().padStart(2, '0')}</strong>
+          <small>Events you're volunteering for</small>
         </article>
       </section>
 
+      {/* Board Section Heading */}
       <div className="section-heading">
         <div>
           <span className="eyebrow">THE BIG PICTURE</span>
@@ -127,55 +168,62 @@ function Dashboard() {
         </Link>
       </div>
 
-      <section className="board-grid" aria-label="Event boards">
-        {boards.map((board) => (
-          <Link
-            className="board-card"
-            to={`/boards/${board.id}`}
-            key={board.id}
-          >
-            <div className={`board-card-art board-card-art-${board.color}`}>
-              <CalendarDays size={28} />
-              <span>EVENT BOARD</span>
-            </div>
-
-            <div className="board-card-content">
-              <div className="board-title-row">
-                <h3>{board.name}</h3>
-                <ArrowUpRight size={18} />
+      {/* Board Loading / Error / List */}
+      {boardsLoading ? (
+        <p className="empty-note">Loading your event boards...</p>
+      ) : boardsError ? (
+        <p className="empty-note">{boardsError}</p>
+      ) : (
+        <section className="board-grid" aria-label="Event boards">
+          {boards.map((board) => (
+            <Link
+              className="board-card"
+              to={`/boards/${board.id}`}
+              key={board.id}
+            >
+              <div className="board-card-art board-card-art-lime">
+                <CalendarDays size={28} />
+                <span>EVENT BOARD</span>
               </div>
 
-              <p><CalendarDays size={15} /> {board.date}</p>
-              <p><MapPin size={15} /> {board.location}</p>
+              <div className="board-card-content">
+                <div className="board-title-row">
+                  <h3>{board.name}</h3>
+                  <ArrowUpRight size={18} />
+                </div>
 
-              <div className="board-progress-meta">
-                <span><Users size={15} /> 6 volunteers</span>
-                <span>{board.completed} / {board.tasks} tasks</span>
-              </div>
+                <p>
+                  <CalendarDays size={15} /> {formatDate(board.date)}
+                </p>
 
-              <div className="progress-track">
-                <span
-                  style={{
-                    width: `${board.tasks
-                      ? Math.min(100, Math.round((board.completed / board.tasks) * 100))
-                      : 0}%`,
-                  }}
-                />
+                <p>
+                  <MapPin size={15} /> {board.location || 'Location to be announced'}
+                </p>
+
+                <div className="board-progress-meta">
+                  <span>
+                    <Users size={15} />
+                    {board.role === 'organiser' ? 'Organiser' : 'Volunteer'}
+                  </span>
+                </div>
               </div>
-            </div>
+            </Link>
+          ))}
+
+          <Link className="board-create-card" to="/boards/new">
+            <span><Plus size={24} /></span>
+            <strong>Start a new event</strong>
+            <small>Make a plan. Bring your people.</small>
           </Link>
-        ))}
+        </section>
+      )}
 
-        <Link className="board-create-card" to="/boards/new">
-          <span><Plus size={24} /></span>
-          <strong>Start a new event</strong>
-          <small>Make a plan. Bring your people.</small>
-        </Link>
-      </section>
-
-      <p className="demo-note">
-        Your boards are saved in this browser for this demo.
-      </p>
+      {!boardsLoading && !boardsError && boards.length === 0 && (
+        <p className="empty-note">
+          You haven't created or joined any boards yet. Create a board or join
+          one using an invitation code!
+        </p>
+      )}
     </main>
   )
 }
