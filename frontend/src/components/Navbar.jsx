@@ -1,3 +1,4 @@
+
 import { CalendarCheck2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
@@ -41,7 +42,17 @@ function Navbar() {
             <>
               {user ? (
                 <>
-                  <span>{user.name}</span>
+                  <Link
+                    to={`/dashboard/${user.id}`}
+                    style={{
+                      color: 'inherit',
+                      textDecoration: 'none',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {user.name}
+                  </Link>
 
                   <button
                     type="button"

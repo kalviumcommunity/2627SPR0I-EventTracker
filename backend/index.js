@@ -8,6 +8,7 @@ const { MongoStore } = require("connect-mongo");
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
+const boardRoutes = require("./routes/boards");
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(
 
 // Authentication routes
 app.use("/auth", authRoutes);
+app.use("/boards", boardRoutes);
 
 // Health check
 app.get("/health", async (req, res) => {
