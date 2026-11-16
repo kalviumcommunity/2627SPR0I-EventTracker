@@ -22,12 +22,17 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 export const api = {
-  get: (endpoint) =>
-    apiRequest(endpoint),
+  get: (endpoint) => apiRequest(endpoint),
 
-  post: (endpoint, body) =>
-    apiRequest(endpoint, {
+  post: (endpoint, body) => apiRequest(endpoint, {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  put: (endpoint, body) => apiRequest(endpoint, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  }),
+
+  delete: (endpoint) => apiRequest(endpoint, { method: "DELETE" }),
 };
