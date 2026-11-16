@@ -3,6 +3,7 @@ import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import workstationArt from './assets/eventsync-workstation.png'
 import Navbar from './components/Navbar'
 import BoardDetails from './pages/BoardDetails'
+import AddDuty from './pages/AddDuty'
 import CreateBoard from './pages/CreateBoard'
 import Dashboard from './pages/Dashboard'
 import JoinBoard from './pages/JoinBoard'
@@ -98,6 +99,7 @@ function App() {
         <Route path="/boards/new" element={<CreateBoard />} />
         <Route path="/boards/join" element={<JoinBoard />} />
         <Route path="/boards/:boardId" element={<BoardDetails />} />
+        <Route path="/boards/:boardId/duties/new" element={<AddDuty />} />
         <Route path="/tasks/:taskId" element={<TaskDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
