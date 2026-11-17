@@ -4,7 +4,72 @@ EventTracker is a web application for managing volunteer duties during campus ev
 
 ## Start Here
 
-For local setup checks and prerequisites, see [SETUP.md](SETUP.md). To start the current frontend, run `npm install` and then `npm run dev` from the `frontend` directory. The backend does not yet define a start command.
+For local setup checks and prerequisites, see [SETUP.md](SETUP.md).
+
+To start the frontend, run `npm install` and then `npm run dev` from the `frontend` directory.
+
+The backend can be built and run independently using Docker. See [Run Backend with Docker](#run-backend-with-docker) below.
+
+## Run Backend with Docker
+
+The backend can be built and run inside a Docker container without installing Node.js on the host machine.
+
+### Prerequisites
+
+- Docker Desktop or Docker Engine installed and running.
+- A reachable MongoDB database.
+- The required backend environment variables.
+
+### 1. Build the backend image
+
+Run this command from the repository root:
+
+```bash
+docker build -t eventtracker-backend -f backend/Dockerfile backend
+```
+
+This builds the backend using `backend/Dockerfile`. Dependencies are installed inside the image using `npm ci --omit=dev`.
+
+The `.dockerignore` file excludes local dependencies, environment files, and unnecessary files from the Docker build context.
+
+### 2. Configure environment variables
+
+Create a local `backend/.env` file containing the required backend configuration:
+
+- `MONGODB_URI`
+- `SESSION_SECRET`
+- `CLIENT_URL`
+- `GOOGLE_CLIENT_ID`
+
+Do not commit this file or include secrets in the Docker image.
+
+### 3. Run the container
+
+From the repository root, run:
+
+```bash
+docker run --rm --name eventtracker-backend -p 5000:5000 --env-file backend/.env -e PORT=5000 eventtracker-backend
+```
+
+The backend listens on port `5000` by default. Its listening port is configurable through the `PORT` environment variable.
+
+The environment file is supplied at runtime and is not copied into the Docker image.
+
+The MongoDB database must be reachable from inside the container. If using MongoDB Atlas, provide a valid connection string in `MONGODB_URI`.
+
+### 4. Test the backend
+
+Open another terminal and run:
+
+```bash
+curl http://localhost:5000/health
+```
+
+A successful response indicates that the backend and MongoDB are connected.
+
+### 5. Stop the container
+
+Press `Ctrl+C` in the terminal running the container.
 
 ## Incident Tracking
 
@@ -24,7 +89,7 @@ The application is designed so that the latest board information can be accessed
 - **Team Members:**
   - Amit Yohan
   - Ain Kay
-  - Katragadda Rishitha 
+  - Katragadda Rishitha
 
 ## Tech Stack
 
@@ -33,7 +98,7 @@ The application is designed so that the latest board information can be accessed
 | Frontend | React.js |
 | Backend | Node.js, Express.js |
 | Database | MongoDB |
-| Authentication | JWT, bcrypt |
+| Authentication | Google OAuth |
 | API Communication | REST APIs |
 | Containerization | Docker |
 | Service Orchestration | Docker Compose |
@@ -58,31 +123,29 @@ The application is designed so that the latest board information can be accessed
 
 Install the following before running the project:
 
-- Node.js and npm
+- Node.js and npm (for local frontend and backend development)
 - Docker
-- Docker Compose
+- Docker Compose (if using Docker Compose)
 - Git
 
 ### 1. Clone the repository
 
 ```bash
-git clone <REPOSITORY_URL>
-cd <PROJECT_DIRECTORY>
+git clone https://github.com/kalviumcommunity/2627SPR0I-EventTracker.git
+cd 2627SPR0I-EventTracker
 ```
-
-Replace the placeholders with your repository URL and project directory.
 
 ### 2. Configure environment variables
 
 Create the required `.env` files for the frontend and backend, using the variable names expected by the application.
 
-Do not commit real credentials, database passwords, or authentication secrets to version control. If the repository contains an `.env.example` file, use it as the reference.
+Do not commit real credentials, database passwords, or authentication secrets to version control.
 
 See [Environment Variables](#environment-variables) below.
 
 ### 3. Run with Docker Compose
 
-From the directory containing the `docker-compose.yml` file, run:
+If the repository contains a configured `docker-compose.yml`, run the following from the directory containing that file:
 
 ```bash
 docker compose up --build
@@ -112,23 +175,32 @@ To stop the services:
 docker compose down
 ```
 
-**Data persistence:** The MongoDB service should use the named volume configured in the Compose file. Do not remove that volume when stopping the application if you need to retain saved data. In particular, avoid `docker compose down -v` unless you intentionally want to delete the stored database volume.
+**Data persistence:** If the MongoDB service uses a named volume, do not remove that volume when stopping the application if you need to retain saved data. Avoid `docker compose down -v` unless you intentionally want to delete the stored database volume.
 
-### 4. Run locally without Docker (if supported by the repository)
+### 4. Run locally without Docker
 
 Install dependencies in the frontend and backend directories:
 
 ```bash
+cd frontend
 npm install
 ```
 
-Start each application using the scripts defined in its `package.json`, for example:
+Start the frontend:
 
 ```bash
 npm run dev
 ```
 
-The exact directories and scripts depend on the repository configuration. Check the frontend and backend `package.json` files for the available commands.
+For the backend, navigate to the `backend` directory, install dependencies and start the service:
+
+```bash
+cd ../backend
+npm install
+npm start
+```
+
+Ensure the backend environment variables are configured before starting the backend.
 
 ### 5. Test the application
 
@@ -155,18 +227,20 @@ Manually verify the main workflow:
 
 ## Environment Variables
 
-The PRD specifies that the application needs configuration for application ports, database connection details, and authentication secrets. It does not define the exact environment variable names.
+The backend uses the following environment variables:
 
-Use the exact names expected by the project's source code and `.env.example` file. The following are **illustrative names only**; confirm or replace them to match the implementation.
-
-| Example variable | Purpose |
+| Variable | Purpose |
 |---|---|
-| `PORT` | Backend server port |
+| `PORT` | Backend listening port (defaults to 5000) |
 | `MONGODB_URI` | MongoDB connection string |
-| `JWT_SECRET` | Secret used to sign authentication tokens |
-| `VITE_API_URL` | Backend API base URL for a Vite-based frontend, if applicable |
+| `SESSION_SECRET` | Secret used for session management |
+| `CLIENT_URL` | Frontend URL allowed by CORS |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `NODE_ENV` | Application runtime environment |
 
 Keep secrets in local environment files or deployment environment settings. Never publish actual secret values in this README or commit them to Git.
+
+For Docker, backend environment variables are supplied at container runtime rather than being embedded in the image.
 
 ## Demo Link
 
