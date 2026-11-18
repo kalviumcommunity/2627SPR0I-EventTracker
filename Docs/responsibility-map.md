@@ -6,6 +6,35 @@ The faculty-assigned host recorded in [SETUP.md](../SETUP.md) is **Render Free T
 
 ## Region and campus suitability
 
+**Recommended region: Singapore.**
+
+Singapore is the closest of Render's currently available regions to Bengaluru, making it a sensible choice for EventTracker users accessing the application from campus.
+
+The actual deployed service region should be verified through the Render Dashboard.
+
+**Measured connection time:**
+
+A connection-time test was performed against the deployed EventTracker backend using curl from PowerShell.
+
+| Measurement | Result |
+|---|---|
+| DNS lookup | 0.081130 seconds |
+| TCP connection | 0.118794 seconds |
+| TLS handshake | 0.386331 seconds |
+| Total response time | 17.792253 seconds |
+
+The TCP connection time was approximately 119 milliseconds.
+The total response time was approximately 17.79 seconds.
+
+The difference suggests that the majority of the delay occurred after
+the initial connection was established. A possible explanation is
+Render Free Tier cold-start behaviour.
+
+These measurements represent one test and should not be treated as
+a consistent average or guaranteed response time.
+
+Reference: https://render.com/docs/regions
+
 **Recommended region: Singapore (not yet confirmed as the deployed region).** Render lists Singapore as an available region. It is the closest of Render's currently listed regions to Bengaluru, so it is the most sensible choice among those options for campus users in Bengaluru. Confirm the actual service region in the Render Dashboard; the repository does not currently record a deployed service URL or selected region. See [Render regions](https://render.com/docs/regions).
 
 **Measured connect time:** Not yet measured. The repository's [README](../README.md) still has a placeholder for the live demo URL, so there is no verified deployed EventTracker endpoint to measure. After deployment, run the following from the campus network and replace this line with the actual result and test date:
