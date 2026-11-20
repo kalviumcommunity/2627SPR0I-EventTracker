@@ -39,16 +39,20 @@ During campus events, organisers manage volunteer assignments and progress updat
 **Primary Decision Maker:** Event organiser or event coordinator.
 
 ### User Identification and Roles
-- Every user must register and log in using an individual account.
-- During registration, users must select their role: **Organiser** or **Volunteer**.
-- The selected role will be stored in the user's account information.
-- Organisers can create and manage their own event boards.
-- Volunteers can join existing boards using valid invitation codes.
-- Each registered user will receive a unique MongoDB `ObjectId`, which will serve as their permanent system identifier.
-- User names will only be used for display purposes and will not be used to identify users or distinguish between accounts.
-- The same account cannot register multiple times using the same email address.
 
-**Authentication Scope:** User registration and login are included in MVP 1.0. Authentication will be implemented using JWT, with `bcrypt` used for password hashing.
+- Every user must authenticate using their Google account through Google OAuth.
+- Users do not need to create a separate password or select a role during registration.
+- After successful Google authentication, users can access the application.
+- The dashboard provides two primary actions: **Create a Board** and **Join a Board**.
+- Users who create boards become organisers of those boards.
+- Users who join existing boards become members and can participate as volunteers.
+- Organiser and volunteer permissions are determined by their relationship with individual boards rather than a permanent role selected during registration.
+- Each registered user will receive a unique MongoDB `ObjectId`, which will serve as their permanent system identifier.
+- Google account information will be used to identify and associate the authenticated user with their application account.
+- User names will only be used for display purposes and will not be used to identify users or distinguish between accounts.
+- The same Google account must not create multiple application accounts.
+
+**Authentication Scope:** Authentication is implemented using Google OAuth. Google handles the authentication process, eliminating the need for application-managed email/password registration, password hashing, or manual JWT generation.
 
 ---
 
@@ -65,6 +69,7 @@ During campus events, organisers manage volunteer assignments and progress updat
 ## 5. Product Objectives
 
 ### Primary Objectives
+
 - Centralize event duty assignments.
 - Allow organisers to create boards and assign tasks.
 - Enable volunteers to join boards through invitation codes.
@@ -74,6 +79,7 @@ During campus events, organisers manage volunteer assignments and progress updat
 - Maintain saved information across application restarts.
 
 ### Expected Outcomes
+
 - Organisers can view all duties and their current status.
 - Volunteers can access and update their responsibilities.
 - Progress updates remain available to organisers.
@@ -84,27 +90,35 @@ During campus events, organisers manage volunteer assignments and progress updat
 ## 6. Data Requirements
 
 ### Categories of Information
-- **User Information:** Unique user ID, name, email address, hashed password, and assigned role.
+
+- **User Information:** Unique user ID, name, email address, and associated Google account identifier.
 - **Board Information:** Board details, owner ID, members, and invitation codes.
 - **Task Information:** Task descriptions, assigned volunteer IDs, deadlines, statuses, and update versions.
 - **Progress Information:** Written updates, submission timestamps, and the IDs of users who submitted them.
 
 ### Storage & Security Technicals
-- **Data Source:** Information entered by organisers and volunteers.
+
+- **Data Source:** Information entered by organisers and volunteers, along with identity information provided through Google OAuth.
 - **Database Technology:** MongoDB.
 - **Storage:** MongoDB with persistent storage through a Docker named volume.
+- **Authentication:** Google OAuth.
 - **Data Validation:** The application will validate user inputs, invitation codes, task assignments, and progress updates.
 - **Data Security:**
-  - Passwords will be securely hashed using `bcrypt`.
-  - JWT will be used for authenticated API access.
-  - Access to boards and tasks will be restricted according to user roles and board membership.
+  - Google OAuth will handle user authentication.
+  - The application will not store user passwords or implement its own password-hashing mechanism.
+  - Authenticated user identity will be established through the Google authentication flow.
+  - Protected application operations will require an authenticated user.
+  - Access to boards and tasks will be restricted according to board ownership and membership.
   - Users will only be allowed to perform operations for which they have permission.
 
 ### Unique User Identification Rules
+
 - Every registered user will have a unique MongoDB `ObjectId`.
-- The `ObjectId` will be used as the reference when assigning volunteers to tasks and associating users with boards.
+- The Google account identifier will be associated with the corresponding application user record.
+- The MongoDB `ObjectId` will be used as the reference when assigning volunteers to tasks and associating users with boards.
 - Two volunteers may have the same name, but their unique user IDs will distinguish their accounts.
 - Task assignments and progress updates will reference user IDs instead of names.
+- The same Google account must map to the same application user account.
 
 ---
 
@@ -112,6 +126,7 @@ During campus events, organisers manage volunteer assignments and progress updat
 
 | Metric | Success Measure |
 | :--- | :--- |
+| **User Authentication** | Users can authenticate successfully through Google OAuth. |
 | **Board Creation** | Organisers can successfully create boards. |
 | **Task Management** | Tasks can be created, edited, deleted, and assigned correctly. |
 | **Progress Tracking** | Task statuses and written updates are saved and displayed. |
@@ -124,31 +139,42 @@ During campus events, organisers manage volunteer assignments and progress updat
 ## 8. User Stories and Acceptance Criteria
 
 ### US-01: User Authentication
-**As a** user, **I want to** register and log in **so that** I can securely access the application.
+
+**As a** user, **I want to** log in using my Google account **so that** I can securely access the application without creating a separate password.
 
 *Acceptance Criteria:*
-- Users can register and log in successfully.
-- Users must select either Organiser or Volunteer during registration.
-- Each account receives a unique user ID.
-- Duplicate email registrations are rejected.
-- Passwords are stored securely using `bcrypt` hashing.
-- Authenticated API requests are verified using JWT.
+
+- Users can authenticate successfully using Google OAuth.
+- Users can access the application after successful Google authentication.
+- Users do not need to register using a separate email/password form.
+- Users do not need to select an Organiser or Volunteer role during registration.
+- Each application user receives a unique MongoDB `ObjectId`.
+- The authenticated Google account is associated with the corresponding application user.
+- The same Google account must not create duplicate application accounts.
+- Unauthenticated users cannot access protected application functionality.
+- Users can sign out of their authenticated session.
 
 ### US-02: Board Management
+
 **As an** organiser, **I want to** create boards and invite volunteers **so that** event responsibilities can be managed centrally.
 
 *Acceptance Criteria:*
-- Organisers can create boards.
+
+- Authenticated users can create boards.
+- A user who creates a board becomes its designated organiser and owner.
 - Each board has a designated owner.
 - Unique invitation codes are generated for boards.
-- Volunteers can join using valid invitation codes.
+- Other authenticated users can join using valid invitation codes.
 - Invalid invitation codes are rejected.
 - Board membership is associated with unique user IDs.
+- Only the board owner can manage their board.
 
 ### US-03: Task Assignment
+
 **As an** organiser, **I want to** create tasks and assign volunteers **so that** responsibilities are clearly distributed.
 
 *Acceptance Criteria:*
+
 - Organisers can create tasks on their own boards.
 - Organisers can assign tasks to volunteers who are members of the respective board.
 - Each task will have one assigned volunteer in MVP 1.0.
@@ -159,9 +185,11 @@ During campus events, organisers manage volunteer assignments and progress updat
 - Volunteers cannot create, edit, or delete tasks.
 
 ### US-04: Progress Tracking
+
 **As a** volunteer, **I want to** update my task status and submit progress updates.
 
 *Acceptance Criteria:*
+
 - Volunteers can update their assigned tasks.
 - Available statuses are **Pending**, **In Progress**, and **Completed**.
 - Volunteers can submit written progress updates.
@@ -170,25 +198,31 @@ During campus events, organisers manage volunteer assignments and progress updat
 - Volunteers cannot update tasks assigned to other users.
 
 ### US-05: Board Monitoring
+
 **As an** organiser, **I want to** view all tasks and their progress.
 
 *Acceptance Criteria:*
+
 - Organisers can view assignments, volunteers, and task statuses on their own boards.
 - Organisers can view submitted progress updates.
 - Organisers can identify incomplete and completed tasks.
 - Organisers can view the latest saved information.
 
 ### US-06: Data Availability
+
 **As a** user, **I want** my event information to remain available across devices and application restarts.
 
 *Acceptance Criteria:*
+
 - The latest saved information is accessible across devices.
 - Application and database container restarts do not erase saved information when the existing persistent volume is retained.
 
 ### US-07: Concurrent Update Handling
+
 **As a** user, **I want** conflicting updates to be handled safely **so that** another user's changes are not accidentally overwritten.
 
 *Acceptance Criteria:*
+
 - Each task will maintain a version number.
 - The version number will increment whenever a task is successfully updated.
 - An update must include the version number of the task that the user last retrieved.
@@ -201,11 +235,13 @@ During campus events, organisers manage volunteer assignments and progress updat
 ## 9. Feature Scope
 
 ### In Scope – MVP 1.0
-- User registration and login.
-- Organiser and Volunteer roles.
-- Unique user identification.
-- Event board creation.
+
+- Google OAuth authentication.
+- Google account-based user identification.
+- Unique MongoDB user identification.
+- Board creation.
 - Invitation code generation and board joining.
+- Organiser and volunteer permissions based on board ownership and membership.
 - Task creation and volunteer assignment.
 - Task editing and deletion by authorized organisers.
 - Task status management.
@@ -217,6 +253,7 @@ During campus events, organisers manage volunteer assignments and progress updat
 - Application and database health checks.
 
 ### Out of Scope – MVP 1.0
+
 - AI-based task assignment.
 - Automated notifications.
 - Volunteer attendance tracking.
@@ -226,6 +263,8 @@ During campus events, organisers manage volunteer assignments and progress updat
 - Dedicated mobile application.
 - File attachments.
 - Multi-volunteer assignment to a single task.
+- Separate email/password authentication.
+- Application-managed password storage and hashing.
 
 > **MVP Limitation:** The initial version focuses on event duty management and progress tracking rather than a complete event management platform.
 
@@ -233,26 +272,32 @@ During campus events, organisers manage volunteer assignments and progress updat
 
 ## 10. Application Workflow
 
-1. A user registers and selects either **Organiser** or **Volunteer**.
-2. The user logs in to the application.
-3. The organiser creates an event board.
-4. The system generates a unique invitation code.
-5. Volunteers join using the invitation code.
-6. The organiser creates tasks and assigns them to board members.
-7. The organiser can edit or delete duties when necessary.
-8. Volunteers view their assigned tasks and update their progress.
-9. The system saves task statuses and written progress updates.
-10. The organiser monitors task statuses and progress updates.
-11. All information is stored in MongoDB and remains accessible across supported devices.
+1. A user opens the EventTracker application.
+2. The user selects the Google login option.
+3. Google OAuth authenticates the user.
+4. After successful authentication, the user is redirected to the application.
+5. The system identifies the user and associates them with their application account.
+6. The dashboard displays two primary actions: **Create a Board** and **Join a Board**.
+7. A user who creates a board becomes its organiser.
+8. The system generates a unique invitation code for the board.
+9. Other authenticated users can join using the invitation code and become board members.
+10. The organiser creates tasks and assigns them to board members.
+11. The organiser can edit or delete duties when necessary.
+12. Volunteers view their assigned tasks and update their progress.
+13. The system saves task statuses and written progress updates.
+14. The organiser monitors task statuses and progress updates.
+15. All information is stored in MongoDB and remains accessible across supported devices.
 
 ---
 
 ## 11. Technical Workflow
 
 ### Proposed Application Architecture
-- **Frontend:** User interface for authentication, board management, and task tracking.
-- **Backend:** Handles application logic, authentication, board management, and task operations.
+
+- **Frontend:** User interface for Google authentication, board management, and task tracking.
+- **Backend:** Handles application logic, authenticated user requests, board management, and task operations.
 - **Database:** MongoDB stores user, board, task, and progress information.
+- **Authentication Provider:** Google OAuth handles user authentication.
 - **Deployment:** Makes the application accessible through a shared web address.
 
 ### Technology Stack
@@ -262,39 +307,49 @@ During campus events, organisers manage volunteer assignments and progress updat
 | **Frontend** | React.js |
 | **Backend** | Node.js with Express.js |
 | **Database** | MongoDB |
-| **Authentication** | JWT and bcrypt |
+| **Authentication** | Google OAuth |
 | **API Communication** | REST APIs |
 | **Containerization** | Docker |
 | **Service Orchestration** | Docker Compose |
 | **Deployment** | Vercel / Render |
 
 ### API Requirements
+
 The backend will provide REST APIs for:
-- User registration and authentication.
+
+- Google OAuth authenticated user access.
+- User identification and account association.
 - Board creation and management.
 - Volunteer board joining.
 - Task creation, editing, deletion, and assignment.
 - Task status updates.
 - Progress submission and retrieval.
 
-The APIs will enforce authentication, input validation, and access permissions.
-*External API Integration:* No external third-party APIs are required or used in the initial MVP. The application uses its own REST APIs for frontend and backend communication.
+The APIs will enforce authenticated access, input validation, and board ownership or membership permissions.
+
+*External API Integration:* Google OAuth is used as the external authentication provider. Apart from Google authentication, no additional third-party APIs are required for the initial MVP. The application uses its own REST APIs for frontend and backend communication.
 
 ### Authentication and Authorization
-- Users register with their name, email address, password, and selected role.
-- Passwords are hashed using `bcrypt` before storage.
-- After successful login, the backend generates a JWT.
-- Protected API endpoints verify the JWT before processing requests.
+
+- Users authenticate through Google OAuth.
+- Google handles the authentication process without requiring users to create or maintain a separate application password.
+- After successful authentication, the application associates the authenticated Google account with its corresponding user record.
+- Each application user is identified internally using a unique MongoDB `ObjectId`.
+- The application does not implement its own password hashing using bcrypt or generate its own JWT authentication tokens.
+- Protected application functionality requires an authenticated user.
+- Authenticated user identity must be verified before processing protected backend operations.
 - Organisers can manage only the boards they own.
 - Volunteers can access boards they have joined.
 - Volunteers can update only their assigned tasks.
 - Unauthorized operations will return appropriate HTTP error responses.
 
 ### Database Design and Identification
+
 MongoDB will be used as the primary database throughout the application.
 
 **Proposed Collections:**
-- `Users`: Stores account information, roles, and unique user IDs.
+
+- `Users`: Stores application user information, Google account association, email addresses, names, and unique user IDs.
 - `Boards`: Stores board details, organiser IDs, invitation codes, and member IDs.
 - `Tasks`: Stores task descriptions, assigned volunteer IDs, deadlines, statuses, and version numbers.
 - `ProgressUpdates`: Stores written progress updates, associated task IDs, user IDs, and timestamps.
@@ -302,7 +357,9 @@ MongoDB will be used as the primary database throughout the application.
 Relationships between records will be maintained using MongoDB `ObjectIds`.
 
 ### Concurrent Update Handling
+
 The application will use optimistic concurrency control to prevent simultaneous updates from overwriting one another.
+
 - Every task document will contain a `version` field.
 - When a user retrieves a task, its current version is returned.
 - When submitting an update, the client sends the version it last retrieved.
@@ -312,6 +369,7 @@ The application will use optimistic concurrency control to prevent simultaneous 
 - The frontend displays a message asking the user to refresh and review the latest task information.
 
 ### Dockerization
+
 - Separate Dockerfiles for frontend and backend.
 - MongoDB running as a separate service using its official Docker image.
 - Docker Compose to manage all application services.
@@ -324,22 +382,26 @@ The application will use optimistic concurrency control to prevent simultaneous 
 *Data Persistence Requirement:* Recreating or restarting application containers must not delete saved database information. MongoDB data must remain available through its existing named volume.
 
 ### Application Health Checks
+
 Docker health checks will be configured to verify that the application services are operational.
 
 - **Frontend Health Check:**
   - Verify that the frontend application is running.
   - Send an HTTP request to its health endpoint or configured application route.
   - Confirm that the frontend responds successfully.
+
 - **Backend Health Check:**
   - Verify that the Node.js/Express server is running.
   - Send an HTTP request to the backend `/health` endpoint.
   - Confirm that the backend can communicate with MongoDB through a database ping.
   - Return a healthy response only when the backend is responsive and the database connection is available.
+
 - **MongoDB Health Check:**
   - Execute MongoDB's `ping` command.
   - Confirm that the database server is accepting requests and responding successfully.
 
 **Expected Behaviour:**
+
 - Docker should report each service as healthy only after its configured checks succeed.
 - If a service becomes unavailable, Docker should report it as unhealthy.
 - Backend-dependent services should wait for MongoDB to become healthy before starting.
@@ -353,22 +415,27 @@ Docker health checks will be configured to verify that the application services 
 
 | Risk | Mitigation |
 | :--- | :--- |
-| **Internet connectivity issues** | Require internet access for application usage. |
+| **Internet connectivity issues** | Require internet access for application usage and Google authentication. |
 | **Database data loss** | Configure persistent MongoDB storage. |
-| **Unauthorized board access** | Enforce authentication and board membership permissions. |
+| **Unauthorized board access** | Enforce authenticated access and board membership permissions. |
 | **Incorrect task updates** | Restrict updates to assigned volunteers. |
-| **Duplicate user identification** | Use unique MongoDB `ObjectIds` instead of names. |
+| **Duplicate user identification** | Use unique MongoDB `ObjectIds` and associate accounts with Google identities. |
 | **Conflicting task updates** | Implement optimistic concurrency control using version numbers. |
-| **Unauthorized task modification**| Allow only the board owner to edit or delete duties. |
+| **Unauthorized task modification** | Allow only the board owner to edit or delete duties. |
 | **Invalid user input** | Validate data on frontend and backend. |
 | **Docker service failure** | Configure health checks and service dependencies. |
 | **Exposed credentials** | Store secrets in environment variables and exclude them from version control. |
+| **Authentication provider unavailability** | Depend on Google's authentication service for Google OAuth login. |
 
 ### Assumptions
+
 - Organisers and volunteers can access the application through a web address.
-- Users will select their roles during registration.
-- Volunteers will join boards using invitation codes.
-- Each user account will have a unique system-generated ID.
+- Users will authenticate through their Google accounts.
+- Google authentication will be available when users need to sign in.
+- Users will choose between creating a board and joining a board after authentication.
+- Users who create boards will act as organisers of those boards.
+- Users who join boards will act as volunteers or board members.
+- Each user account will have a unique system-generated MongoDB `ObjectId`.
 - Three task statuses are sufficient for the MVP.
 - Each task will have one assigned volunteer.
 - Only the board owner can create, edit, or delete duties.
@@ -376,7 +443,7 @@ Docker health checks will be configured to verify that the application services 
 - Internet connectivity will be available.
 - MongoDB's existing named Docker volume will be retained for data persistence.
 
-> **Privacy Consideration:** Only information required for user accounts and event management will be collected.
+> **Privacy Consideration:** Only information required for user accounts and event management will be collected. Google account information will be used for authentication and account identification.
 
 ---
 
@@ -385,8 +452,9 @@ Docker health checks will be configured to verify that the application services 
 The interface will prioritize simplicity, clear task ownership, and easy progress tracking.
 
 **Main Screens:**
-- Registration and Login Pages
-- Organiser Dashboard
+
+- Google Login Page
+- Dashboard Page
 - Create Board Page
 - Join Board Page
 - Board Tasks Page
@@ -400,9 +468,9 @@ The interface will prioritize simplicity, clear task ownership, and easy progres
 
 - React.js and Node.js/Express.js development environments.
 - MongoDB database.
-- JWT and bcrypt authentication dependencies.
+- Google OAuth configuration and credentials.
 - Docker and Docker Compose.
-- Environment variables for application configuration.
+- Environment variables for application configuration and authentication credentials.
 - Persistent storage for MongoDB.
 - Deployment environment supporting the selected application services.
 - Internet connectivity.
@@ -418,10 +486,10 @@ The interface will prioritize simplicity, clear task ownership, and easy progres
 | **1st Week** | Backend API Development | Yohan | Authentication functionality | 1st week |
 | | | Ain | Board management functionality | 1st week |
 | | | Rishitha | Task management and progress tracking functionality | 1st week |
-| **2nd Week** | Frontend Development | Yohan | Signup Page and Login Page | 2nd week |
+| **2nd Week** | Frontend Development | Yohan | Google Login Page | 2nd week |
 | | | Ain | Dashboard Page, Create Board Page, and Join Board Page | 2nd week |
 | | | Rishitha | Board Tasks Page, Create Task Page, Task Details Page, and Progress Updates Section | 2nd week |
-| **3rd Week** | Database Design & Integration | Yohan | `Users` collection and authentication data | 3rd week |
+| **3rd Week** | Database Design & Integration | Yohan | `Users` collection and Google account association | 3rd week |
 | | | Ain | `Boards` collection, invitation codes, owners, and members | 3rd week |
 | | | Rishitha | `Tasks` and `ProgressUpdates` collections | 3rd week |
 | **4th Week** | Docker & Containerization | Yohan | Frontend Dockerfile | 4th week |
@@ -432,14 +500,17 @@ The interface will prioritize simplicity, clear task ownership, and easy progres
 ### Delivery Approach
 
 #### Phase 1 – Application Development (Weeks 1–3)
+
 - Develop backend functionality.
 - Build the required frontend pages.
+- Implement Google OAuth authentication.
 - Design and integrate MongoDB collections.
-- Implement authentication and role-based access.
+- Implement user identification and board-level permissions.
 - Connect the frontend, backend, and database.
 - Implement task management and progress tracking.
 
 #### Phase 2 – Containerization (Week 4)
+
 - Create frontend and backend Dockerfiles.
 - Configure Docker Compose.
 - Configure MongoDB persistent storage.
@@ -447,6 +518,7 @@ The interface will prioritize simplicity, clear task ownership, and easy progres
 - Verify container startup and database connectivity.
 
 #### Phase 3 – Integration and Final Delivery (Week 5)
+
 - Integrate all application components.
 - Verify the main application workflows.
 - Test concurrent task updates.
@@ -455,10 +527,13 @@ The interface will prioritize simplicity, clear task ownership, and easy progres
 - Prepare the final application deployment.
 
 ### Validation and Demonstration
+
 The team will validate the main application workflows, including:
-- User registration and login.
-- Organiser and Volunteer role identification.
+
+- Google OAuth authentication.
+- Application user identification.
 - Unique user identification.
+- Dashboard access after authentication.
 - Board creation and volunteer joining.
 - Task creation and assignment.
 - Task editing and deletion by organisers.
@@ -471,11 +546,13 @@ The team will validate the main application workflows, including:
 - Data persistence after container restarts.
 
 ### Expected Deliverables
+
 - Working EventTracker web application.
 - Frontend and backend source code.
 - MongoDB integration.
 - REST API implementation.
-- Authentication and authorization functionality.
+- Google OAuth authentication.
+- User identification and authorization functionality.
 - Frontend and backend Dockerfiles.
 - Docker Compose configuration.
 - Persistent database storage configuration.
@@ -490,10 +567,14 @@ The team will validate the main application workflows, including:
 ## 16. Final Acceptance Criteria
 
 The MVP will be considered ready for release when:
-- Users can register and log in.
-- Users can select their roles during registration.
-- Every user receives a unique system-generated ID.
-- Organisers can create boards and invite volunteers.
+
+- Users can authenticate using Google OAuth.
+- Users can access the application after successful Google authentication.
+- Users do not need to create a separate application password.
+- Every application user receives a unique system-generated MongoDB `ObjectId`.
+- Google accounts are correctly associated with application user records.
+- Users can create boards and become their organisers.
+- Organisers can invite volunteers through unique invitation codes.
 - Volunteers can join boards using invitation codes.
 - Organisers can create, edit, and delete duties on their own boards.
 - Organisers can assign tasks to board members.
@@ -511,4 +592,4 @@ The MVP will be considered ready for release when:
 
 ---
 
-**Final Product Scope:** EventTracker is a centralized campus event duty management application that simplifies volunteer assignments, task tracking, and progress monitoring through a web-based platform with user authentication, role-based access, MongoDB data storage, Docker-based deployment, and persistent data storage.
+**Final Product Scope:** EventTracker is a centralized campus event duty management application that simplifies volunteer assignments, task tracking, and progress monitoring through a web-based platform with Google OAuth authentication, board-based permissions, MongoDB data storage, Docker-based deployment, and persistent data storage.
