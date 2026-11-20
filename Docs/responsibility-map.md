@@ -1,63 +1,34 @@
-# Hosting responsibility map
+# Cloud responsibility map
 
-## Assigned host and classification
+## Assigned host
 
-The faculty-assigned host recorded in [SETUP.md](../SETUP.md) is **Render Free Tier**. This is **PaaS (Platform as a Service)**, not an IaaS virtual machine. Render manages the hosting platform; the team remains responsible for its application, application-level configuration, secrets, and application data.
+**Host:** Render Free Tier
 
-## Region and campus suitability
-
-**Recommended region: Singapore.**
-
-Singapore is the closest of Render's currently available regions to Bengaluru, making it a sensible choice for EventTracker users accessing the application from campus.
-
-The actual deployed service region should be verified through the Render Dashboard.
-
-**Measured connection time:**
-
-A connection-time test was performed against the deployed EventTracker backend using curl from PowerShell.
-
-| Measurement | Result |
-|---|---|
-| DNS lookup | 0.081130 seconds |
-| TCP connection | 0.118794 seconds |
-| TLS handshake | 0.386331 seconds |
-| Total response time | 17.792253 seconds |
-
-The TCP connection time was approximately 119 milliseconds.
-The total response time was approximately 17.79 seconds.
-
-The difference suggests that the majority of the delay occurred after
-the initial connection was established. A possible explanation is
-Render Free Tier cold-start behaviour.
-
-These measurements represent one test and should not be treated as
-a consistent average or guaranteed response time.
-
-Reference: https://render.com/docs/regions
-
-**Recommended region: Singapore (not yet confirmed as the deployed region).** Render lists Singapore as an available region. It is the closest of Render's currently listed regions to Bengaluru, so it is the most sensible choice among those options for campus users in Bengaluru. Confirm the actual service region in the Render Dashboard; the repository does not currently record a deployed service URL or selected region. See [Render regions](https://render.com/docs/regions).
-
-**Measured connect time:** Not yet measured. The repository's [README](../README.md) still has a placeholder for the live demo URL, so there is no verified deployed EventTracker endpoint to measure. After deployment, run the following from the campus network and replace this line with the actual result and test date:
-
-```bash
-curl -sS -o /dev/null -w 'DNS=%{time_namelookup}s TCP=%{time_connect}s TLS=%{time_appconnect}s TOTAL=%{time_total}s\n' "$APP_URL"
-```
-
-Do not report a guessed number as a measurement.
+**Model:** PaaS. The faculty setup record identifies Render Free as the selected host in [SETUP.md](../SETUP.md). Render manages the platform; the team remains responsible for application-level configuration, access, secrets, data, and code.
 
 ## Responsibility table
 
 | Layer | Owner | Evidence and responsibility boundary |
 |---|---|---|
-| hardware | Provider | [Render Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) says Render secures the infrastructure that hosts hardware, software, networking, and facilities, and manages underlying servers and storage. |
-| OS patches | Provider | [Render Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) explicitly says Render is responsible for keeping underlying operating systems patched and up to date. This is the key difference from an IaaS VM. |
-| container runtime | Provider | [Render Services and Service Types](https://render.com/docs/service-types) describes service instances as containerized environments on Render infrastructure. The [shared responsibility model](https://render.com/docs/shared-responsibility-model) assigns secure, up-to-date supported-language runtime environments to Render. [SETUP.md](../SETUP.md) documents Docker Engine/Compose on a student development machine; that local runtime is not the hosted platform runtime. |
-| network and firewall | Split — Provider: Render operates the platform's internal networking and infrastructure network controls; Team: Rishitha Katragadda owns application-level access controls and CORS configuration. | Provider boundary: [Render Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) assigns internal networking between services/databases to Render and application-level configuration to the customer. Team evidence: [backend/package.json](../backend/package.json) lists the CORS dependency, but the current repository does not contain backend application source proving the policy is configured. **not yet done, closed in LU NN** (replace NN with the actual learning-unit number when this work is closed). |
-| TLS | Provider | [Render managed TLS certificates](https://render.com/docs/tls) says hosted applications and static sites receive managed TLS certificates, automatically renewed, and HTTP is redirected to HTTPS. |
-| database backups | Team: Amit Yohan Horo | EventTracker uses MongoDB/Mongoose, as shown in [README.md](../README.md) and [backend/package.json](../backend/package.json). This is not evidence of a Render-managed MongoDB backup. Render's [MongoDB deployment guide](https://render.com/docs/deploy-mongodb) recommends using MongoDB's backup tooling (such as `mongodump`) rather than relying on disk snapshots. No backup/restore script or verified backup policy is present in the repository: **not yet done, closed in LU NN** (replace NN with the actual learning-unit number when this work is closed). |
-| secrets | Team: Rishitha Katragadda | [README.md — Environment Variables](../README.md#environment-variables) and [SETUP.md](../SETUP.md) document the need to keep credentials in environment configuration and out of Git. The actual Render environment settings must be verified in the private dashboard; no secret values are recorded here. The repository does not prove that the production settings have been configured: **not yet done, closed in LU NN** (replace NN with the actual learning-unit number when this work is closed). |
-| application code | Team: Ain Kay (frontend), Rishitha Katragadda (backend), and Amit Yohan Horo (team integration/review) | The repository identifies all three students in [Contributers.md](../Contributers.md). The frontend and backend package files are [frontend/package.json](../frontend/package.json) and [backend/package.json](../backend/package.json). The role split in this row is the team's proposed ownership assignment and should be confirmed by all three students before mentor sign-off. |
+| hardware | Provider | Render's [Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) says it secures the infrastructure hosting hardware, software, networking, and facilities. |
+| OS patches | Provider | Render's [Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) says: “Making sure all underlying operating systems are patched and up to date.” |
+| container runtime | Provider | Render's [Services and Service Types](https://render.com/docs/service-types) describes service instances as “containerized environments on Render infrastructure.” Its [Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) assigns Render responsibility for keeping supported language and framework runtime environments secure and up to date. The Docker runtime in [SETUP.md](../SETUP.md) is for local development, not the hosted Render runtime. |
+| network and firewall | Split — Provider: internal networking between Render services and databases. Team: Katragadda Rishitha owns the application's CORS allow-list/configuration. | Render's [Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) assigns internal networking between services and databases to Render and application-level configuration to the customer. Team evidence: [backend/index.js](../backend/index.js) configures CORS from `CLIENT_URL`. |
+| TLS | Provider | Render's [Fully Managed TLS Certificates](https://render.com/docs/tls) says hosted applications receive free, fully managed TLS certificates that Render automatically renews, and HTTP requests are redirected to HTTPS. |
+| database backups | Team: Amit Yohan Horo | No backup/restore workflow or verified backup policy for EventTracker's MongoDB is recorded in this repository. Render's [Shared Responsibility Model](https://render.com/docs/shared-responsibility-model) assigns customers their own business continuity and disaster recovery plans; Render's [MongoDB deployment guide](https://render.com/docs/deploy-mongodb) recommends database-native backup tools such as `mongodump` and warns against relying on disk snapshots. **Not yet done; close in LU NN** (replace NN with the assigned learning-unit number). |
+| secrets | Team: Katragadda Rishitha | [backend/index.js](../backend/index.js) reads configuration from environment variables, and [README.md](../README.md#environment-variables) documents keeping secret values out of Git. The actual Render environment settings are not verifiable from this repository. **Not yet done; close in LU NN** (replace NN with the assigned learning-unit number). No secret values are included here. |
+| application code | Team: Ain Kay (primary; frontend), with Katragadda Rishitha (backend) and Amit Yohan Horo (integration/review) | The team is listed in [README.md](../README.md#team-details). Source evidence: [frontend/](../frontend/) and [backend/](../backend/). |
 
 ## What we would have wrongly assumed
 
-We would have wrongly assumed that the hosting provider patches the operating system even when we rent a virtual machine. The VM counter-example shows why that is incorrect: with an IaaS VM, **our team would patch the guest OS** because we administer that machine. With the assigned Render Free PaaS, Render patches the underlying operating systems and maintains the managed runtime; our team does not log in to a guest VM to apply OS updates. We still own application code, application-level security settings, secrets, and our MongoDB backup and restore plan.
+We would have wrongly assumed that the cloud company patches the OS on a VM. On an IaaS VM, the team owns guest OS updates; the provider's responsibility stops at the hypervisor. Our assigned host is Render PaaS, so Render patches its underlying operating systems. We still own application configuration, secrets, database backups, and application code.
+
+## Region, location, and connection time
+
+Render's [Regions](https://render.com/docs/regions) page lists Singapore, the closest currently listed Render region to Bengaluru for our campus users. **Recommended region: Singapore; the deployed service's selected region has not been verified in the Render Dashboard.** Confirm the actual region and keep the web service and any Render-hosted database in the same region.
+
+The Render endpoint is [two627spr0i-eventtracker-1.onrender.com](https://two627spr0i-eventtracker-1.onrender.com/). A single TCP connect-time measurement from this execution environment on 2026-11-20 was **0.080748 seconds** (`time_connect`). This environment's network is not confirmed to be the campus network, so rerun the measurement from campus before submitting it as the required campus result:
+
+```powershell
+curl.exe --output NUL --silent --show-error --write-out "time_connect=%{time_connect}s`n" https://two627spr0i-eventtracker-1.onrender.com/
+```
