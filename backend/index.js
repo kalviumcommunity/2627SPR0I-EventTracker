@@ -2,11 +2,11 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
 const session = require("express-session");
-const { MongoStore } = require("connect-mongo");
+const PgSession = require("connect-pg-simple")(session);
 
-const connectDB = require("./config/db");
+const { pool, connectDB } = require("./config/db");
+
 const authRoutes = require("./routes/auth");
 const boardRoutes = require("./routes/boards");
 const dutyRoutes = require("./routes/duties");
@@ -31,9 +31,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
 
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URI,
-      collectionName: "sessions",
+    store: new PgSession({
+      pool,
+      tableName: "session",
+      createTableIfMissing: true,
     }),
 
     cookie: {
@@ -53,11 +54,11 @@ app.use("/duties", dutyRoutes);
 // Health check
 app.get("/health", async (req, res) => {
   try {
-    await mongoose.connection.db.admin().ping();
+    await pool.query("SELECT 1");
 
     res.json({
       status: "healthy",
-      message: "EventTracker backend and MongoDB are connected!",
+      message: "EventTracker backend and PostgreSQL are connected!",
     });
   } catch (error) {
     res.status(503).json({

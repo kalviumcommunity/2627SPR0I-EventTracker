@@ -1,6 +1,6 @@
 const express = require("express");
 const { OAuth2Client } = require("google-auth-library");
-const User = require("../models/User");
+const { pool } = require("../config/db");
 
 const router = express.Router();
 
@@ -33,35 +33,52 @@ router.post("/google", async (req, res) => {
       });
     }
 
-    const { sub: googleId, name, email, picture } = payload;
+    const {
+      sub: googleId,
+      name,
+      email,
+      picture,
+    } = payload;
 
-    // Find existing user
-    let user = await User.findOne({ googleId });
+    // Find existing user using Google ID
+    const existingUser = await pool.query(
+      `SELECT id, name, email, picture
+       FROM users
+       WHERE google_id = $1`,
+      [googleId]
+    );
 
+    let user;
     let isNewUser = false;
 
-    // Create account if user doesn't exist
-    if (!user) {
-      // Avoid accidentally linking a different Google account
-      const existingEmail = await User.findOne({ email });
+    if (existingUser.rows.length > 0) {
+      user = existingUser.rows[0];
+    } else {
+      // Prevent linking a different Google account to an existing email
+      const existingEmail = await pool.query(
+        `SELECT id FROM users WHERE email = $1`,
+        [email]
+      );
 
-      if (existingEmail) {
+      if (existingEmail.rows.length > 0) {
         return res.status(409).json({
           message: "An account with this email already exists.",
         });
       }
 
-      user = await User.create({
-        googleId,
-        name,
-        email,
-        picture: picture || "",
-      });
+      // Create new user
+      const result = await pool.query(
+        `INSERT INTO users (google_id, name, email, picture)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, name, email, picture`,
+        [googleId, name, email, picture || ""]
+      );
 
+      user = result.rows[0];
       isNewUser = true;
     }
 
-    // Create a fresh session
+    // Create a fresh login session
     req.session.regenerate((error) => {
       if (error) {
         console.error("Session error:", error);
@@ -71,7 +88,7 @@ router.post("/google", async (req, res) => {
         });
       }
 
-      req.session.userId = user._id.toString();
+      req.session.userId = user.id;
 
       req.session.save((error) => {
         if (error) {
@@ -88,7 +105,7 @@ router.post("/google", async (req, res) => {
             : "Login successful",
           isNewUser,
           user: {
-            id: user._id,
+            id: user.id,
             name: user.name,
             email: user.email,
             picture: user.picture,
@@ -96,7 +113,6 @@ router.post("/google", async (req, res) => {
         });
       });
     });
-
   } catch (error) {
     console.error("Google authentication error:", error.message);
 
@@ -115,30 +131,34 @@ router.get("/me", async (req, res) => {
       });
     }
 
-    const user = await User.findById(req.session.userId).select(
-        "name email picture createdAt"
+    const result = await pool.query(
+      `SELECT id, name, email, picture, created_at
+       FROM users
+       WHERE id = $1`,
+      [req.session.userId]
     );
 
-    if (!user) {
+    if (result.rows.length === 0) {
       return res.status(401).json({
         message: "User not found",
       });
     }
 
-    res.status(200).json({
+    const user = result.rows[0];
+
+    return res.status(200).json({
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         picture: user.picture,
-        createdAt: user.createdAt,
+        createdAt: user.created_at,
       },
     });
-
   } catch (error) {
     console.error("Session check error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Could not verify session",
     });
   }
@@ -160,7 +180,7 @@ router.post("/logout", (req, res) => {
       path: "/",
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Logged out successfully",
     });
   });
