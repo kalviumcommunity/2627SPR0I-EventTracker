@@ -1,87 +1,91 @@
 # EventTracker
 
-EventTracker is a web application for managing volunteer duties during campus events. It gives organisers and volunteers a centralized place to manage event boards, assign tasks, track progress, and view updates.
+EventTracker is a web application for managing volunteer duties during campus events. It provides organisers and volunteers with a centralized platform to create event boards, assign responsibilities, track duty progress, and monitor updates.
+
+Organisers can create boards, generate unique invitation codes, invite volunteers, assign duties, and monitor their completion. Volunteers can join boards using invitation codes, view their assigned duties, and update their descriptions and statuses.
 
 ## Start Here
 
-For local setup checks and prerequisites, see [SETUP.md](SETUP.md).
+For local setup requirements and prerequisites, see [SETUP.md](SETUP.md).
 
-To start the frontend, run `npm install` and then `npm run dev` from the `frontend` directory.
+EventTracker uses:
 
-The backend can be built and run independently using Docker. See [Run Backend with Docker](#run-backend-with-docker) below.
+- **Frontend:** React.js with Vite
+- **Backend:** Node.js with Express.js
+- **Database:** PostgreSQL 17
+- **Authentication:** Google OAuth
+- **Session Storage:** PostgreSQL using `connect-pg-simple`
+- **Containerization:** Docker and Docker Compose
 
-## Run Backend with Docker
+The PostgreSQL database runs through Docker Compose. The frontend and backend can be started independently during local development.
 
-The backend can be built and run inside a Docker container without installing Node.js on the host machine.
+## Features
 
-### Prerequisites
+- Google OAuth authentication.
+- Automatic application user identification.
+- Unique PostgreSQL UUID for every application user.
+- Create event boards.
+- Generate unique invitation codes for boards.
+- Join boards using invitation codes.
+- Board-level organiser and volunteer roles.
+- Create duties and assign them to board volunteers.
+- Edit and delete duties as the board organiser.
+- Track duty status: `Pending`, `In Progress`, or `Completed`.
+- Allow assigned volunteers to update duty descriptions and statuses.
+- View board members and assigned duties.
+- Restrict board and duty operations according to user permissions.
+- PostgreSQL-backed authentication sessions.
+- Persistent PostgreSQL database storage using Docker volumes.
 
-- Docker Desktop or Docker Engine installed and running.
-- A reachable MongoDB database.
-- The required backend environment variables.
+## Tech Stack
 
-### 1. Build the backend image
+| Component | Technology |
+|---|---|
+| Frontend | React.js |
+| Frontend Build Tool | Vite |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL 17 |
+| Database Driver | `pg` (node-postgres) |
+| Authentication | Google OAuth |
+| Authentication Verification | `google-auth-library` |
+| Session Management | `express-session` |
+| Session Storage | `connect-pg-simple` |
+| API Communication | REST APIs |
+| Containerization | Docker |
+| Service Orchestration | Docker Compose |
 
-Run this command from the repository root:
+## Project Structure
 
-```bash
-docker build -t eventtracker-backend -f backend/Dockerfile backend
+```text
+2627SPR0I-EventTracker/
+├── backend/
+│   ├── config/
+│   │   ├── db.js
+│   │   └── schema.sql
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── boards.js
+│   │   └── duties.js
+│   ├── index.js
+│   ├── package.json
+│   └── Dockerfile
+├── frontend/
+│   └── src/
+├── Docs/
+├── docker-compose.yml
+├── README.md
+└── SETUP.md
 ```
-
-This builds the backend using `backend/Dockerfile`. Dependencies are installed inside the image using `npm ci --omit=dev`.
-
-The `.dockerignore` file excludes local dependencies, environment files, and unnecessary files from the Docker build context.
-
-### 2. Configure environment variables
-
-Create a local `backend/.env` file containing the required backend configuration:
-
-- `MONGODB_URI`
-- `SESSION_SECRET`
-- `CLIENT_URL`
-- `GOOGLE_CLIENT_ID`
-
-Do not commit this file or include secrets in the Docker image.
-
-### 3. Run the container
-
-From the repository root, run:
-
-```bash
-docker run --rm --name eventtracker-backend -p 5000:5000 --env-file backend/.env -e PORT=5000 eventtracker-backend
-```
-
-The backend listens on port `5000` by default. Its listening port is configurable through the `PORT` environment variable.
-
-The environment file is supplied at runtime and is not copied into the Docker image.
-
-The MongoDB database must be reachable from inside the container. If using MongoDB Atlas, provide a valid connection string in `MONGODB_URI`.
-
-### 4. Test the backend
-
-Open another terminal and run:
-
-```bash
-curl http://localhost:5000/health
-```
-
-A successful response indicates that the backend and MongoDB are connected.
-
-### 5. Stop the container
-
-Press `Ctrl+C` in the terminal running the container.
-
-## Incident Tracking
-
-The repository's [team board](Docs/team-board.md) points to a clearly labeled [demo incident](Docs/mock-incident.md). It is fictional and is only for practicing the branch-and-PR workflow; replace it with the team's assigned incident before submitting the course assignment.
 
 ## Problem Statement
 
-During campus events, organisers often share volunteer assignments and progress updates across multiple chats and personal messages. This makes it difficult to identify incomplete duties, confirm who is responsible for each task, and keep track of the latest updates.
+During campus events, organisers often manage volunteer assignments and progress updates through multiple chats and personal messages. This makes it difficult to identify incomplete duties, confirm responsibilities, and track the latest updates.
 
-EventTracker addresses this by providing a shared duty board where organisers can create event boards, invite volunteers, assign tasks, and monitor progress. Volunteers can join boards using invitation codes, view their responsibilities, update task statuses, and submit written progress updates.
+EventTracker addresses this by providing a shared duty management platform where organisers can create event boards, invite volunteers, assign duties, and monitor progress.
 
-The application is designed so that the latest board information can be accessed from different devices and saved information remains available after application or database container restarts.
+Volunteers can join boards using invitation codes, view their assigned responsibilities, and update duty descriptions and statuses.
+
+The application stores its information centrally in PostgreSQL, allowing authorized users to access saved board and duty information.
 
 ## Team Details
 
@@ -91,31 +95,67 @@ The application is designed so that the latest board information can be accessed
   - Ain Kay
   - Katragadda Rishitha
 
-## Tech Stack
+## Application Workflow
 
-| Component | Technology |
+1. A user signs in using Google OAuth.
+2. The backend verifies the user's Google identity.
+3. The application finds or creates the corresponding user record in PostgreSQL.
+4. The user is redirected to the dashboard.
+5. The user chooses to create a board or join an existing board.
+6. A user who creates a board becomes its organiser.
+7. The system generates a unique invitation code for the board.
+8. Other users can join using the invitation code and become volunteers.
+9. The organiser creates duties and assigns them to board volunteers.
+10. Volunteers view their assigned duties and update their descriptions and statuses.
+11. The organiser monitors the latest saved duty information.
+
+## User Roles and Permissions
+
+Roles are assigned separately for each board. A user can be an organiser of one board and a volunteer in another.
+
+| Action | Organiser | Volunteer |
+|---|---|---|
+| Create a board | Yes | Yes |
+| Join another board | Yes | Yes |
+| View board details | Yes | Yes, if a member |
+| View board duties | Yes | Yes, if a member |
+| Create duties | Yes | No |
+| Assign volunteers | Yes | No |
+| Edit all duty fields | Yes | No |
+| Edit assigned duty description | Yes | Yes |
+| Update assigned duty status | Yes | Yes |
+| Delete duties | Yes | No |
+
+Volunteers can update only the description and status of duties assigned to them. Organisers can manage all duties on boards they organize.
+
+## Database Design
+
+EventTracker uses PostgreSQL 17 as its primary relational database.
+
+The database contains the following main tables:
+
+| Table | Purpose |
 |---|---|
-| Frontend | React.js |
-| Backend | Node.js, Express.js |
-| Database | MongoDB |
-| Authentication | Google OAuth |
-| API Communication | REST APIs |
-| Containerization | Docker |
-| Service Orchestration | Docker Compose |
-| Deployment | Vercel / Render (deployment provider to be confirmed) |
+| `users` | Stores user information and Google account association. |
+| `boards` | Stores event board details, creator information, and invitation codes. |
+| `board_members` | Stores board membership and board-level roles. |
+| `duties` | Stores duties, assignments, descriptions, statuses, priorities, and timestamps. |
+| `session` | Stores Express authentication sessions through the PostgreSQL session store. |
 
-## Features
+The application uses PostgreSQL UUIDs to identify users, boards, memberships, and duties. Foreign-key relationships maintain associations between these records.
 
-- User registration and login
-- Create event boards
-- Generate unique invitation codes for boards
-- Join boards using invitation codes
-- Create tasks and assign them to board members
-- Track task status: `Pending`, `In Progress`, or `Completed`
-- Submit written progress updates
-- Retain previous progress updates with their author and timestamp
-- View task assignments and progress from a centralized board
-- Persist MongoDB data using a Docker named volume
+## Authentication and Session Management
+
+- Users authenticate using Google OAuth.
+- The backend verifies Google authentication using `google-auth-library`.
+- Application user records are stored in PostgreSQL.
+- Every application user has a unique UUID.
+- Express sessions maintain authenticated application state.
+- `connect-pg-simple` stores sessions in PostgreSQL.
+- Protected backend routes require an authenticated session.
+- Users can log out, which destroys their session.
+
+The application does not use a separate email/password authentication system or its own JWT authentication implementation.
 
 ## Setup, Run and Test Instructions
 
@@ -123,10 +163,11 @@ The application is designed so that the latest board information can be accessed
 
 Install the following before running the project:
 
-- Node.js and npm (for local frontend and backend development)
-- Docker
-- Docker Compose (if using Docker Compose)
-- Git
+- Node.js and npm.
+- Docker Desktop or Docker Engine.
+- Docker Compose.
+- Git.
+- A Google OAuth client ID configured for the application.
 
 ### 1. Clone the repository
 
@@ -137,37 +178,126 @@ cd 2627SPR0I-EventTracker
 
 ### 2. Configure environment variables
 
-Create the required `.env` files for the frontend and backend, using the variable names expected by the application.
+Create the required `.env` files for the frontend and backend.
 
-Do not commit real credentials, database passwords, or authentication secrets to version control.
+The backend requires the following environment variables:
 
-See [Environment Variables](#environment-variables) below.
+| Variable | Purpose |
+|---|---|
+| `PORT` | Backend listening port. Defaults to `5000`. |
+| `DATABASE_URL` | PostgreSQL connection string. |
+| `SESSION_SECRET` | Secret used for Express session management. |
+| `CLIENT_URL` | Frontend URL allowed by CORS. |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID. |
+| `NODE_ENV` | Application runtime environment. |
 
-### 3. Run with Docker Compose
+The frontend may use:
 
-If the repository contains a configured `docker-compose.yml`, run the following from the directory containing that file:
+| Variable | Purpose |
+|---|---|
+| `VITE_API_URL` | Backend API base URL. Defaults to `http://localhost:5000` in the current frontend configuration. |
 
-```bash
-docker compose up --build
+For the local PostgreSQL Docker configuration, the backend connection string follows this format:
+
+```env
+DATABASE_URL=postgresql://eventtracker_user:your_password@localhost:5432/eventtracker
 ```
 
-To run the services in the background:
+Use the actual database credentials configured in your local Docker Compose file.
+
+Do not commit `.env` files or publish database passwords, session secrets, or OAuth credentials.
+
+### 3. Start PostgreSQL using Docker Compose
+
+From the repository root, run:
 
 ```bash
-docker compose up --build -d
+docker compose up -d
 ```
 
-To view running containers:
+To check running containers:
 
 ```bash
 docker compose ps
 ```
 
-To view service logs:
+To view PostgreSQL logs:
 
 ```bash
-docker compose logs -f
+docker compose logs -f postgres
 ```
+
+The PostgreSQL service uses a named Docker volume for persistent storage.
+
+### 4. Initialize the PostgreSQL schema
+
+For a fresh database, execute the schema file from the repository root:
+
+```bash
+docker exec -i eventtracker-postgres psql -U eventtracker_user -d eventtracker < backend/config/schema.sql
+```
+
+This creates the required database tables and relationships.
+
+**Note:** Run the schema initialization when setting up a fresh database. Do not repeatedly execute it against an already initialized database unless the schema is designed for repeated execution.
+
+### 5. Install backend dependencies and start the backend
+
+Open a terminal:
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+The backend should connect to PostgreSQL and start on port `5000` by default.
+
+### 6. Install frontend dependencies and start the frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the local frontend URL displayed by Vite in your browser.
+
+### 7. Verify backend connectivity
+
+Open:
+
+```text
+http://localhost:5000/health
+```
+
+A successful response indicates that the backend and PostgreSQL are connected.
+
+## Running the Backend with Docker
+
+The backend also has a Dockerfile for building a backend image independently.
+
+Build the image from the repository root:
+
+```bash
+docker build -t eventtracker-backend -f backend/Dockerfile backend
+```
+
+Run the container with the required environment variables:
+
+```bash
+docker run --rm --name eventtracker-backend -p 5000:5000 --env-file backend/.env -e PORT=5000 eventtracker-backend
+```
+
+**Important:** When the backend runs inside a container while PostgreSQL runs in a separate container, `localhost` inside the backend container does not refer to the PostgreSQL container. Configure `DATABASE_URL` to use a hostname reachable from the backend container, such as `host.docker.internal` when connecting to a database exposed on the host, or use a shared Docker network and the PostgreSQL service/container name.
+
+The frontend and backend can also be run locally while PostgreSQL runs in Docker, as described in the previous sections.
+
+## Data Persistence
+
+PostgreSQL uses a named Docker volume to retain database data.
 
 To stop the services:
 
@@ -175,88 +305,84 @@ To stop the services:
 docker compose down
 ```
 
-**Data persistence:** If the MongoDB service uses a named volume, do not remove that volume when stopping the application if you need to retain saved data. Avoid `docker compose down -v` unless you intentionally want to delete the stored database volume.
-
-### 4. Run locally without Docker
-
-Install dependencies in the frontend and backend directories:
+To start them again:
 
 ```bash
-cd frontend
-npm install
+docker compose up -d
 ```
 
-Start the frontend:
+Saved database information remains available when the existing named volume is retained.
+
+**Important:** Avoid running the following command unless you intentionally want to delete the PostgreSQL data:
 
 ```bash
-npm run dev
+docker compose down -v
 ```
 
-For the backend, navigate to the `backend` directory, install dependencies and start the service:
+Removing the named volume deletes the stored database data.
 
-```bash
-cd ../backend
-npm install
-npm start
-```
+## Testing the Application
 
-Ensure the backend environment variables are configured before starting the backend.
+Verify the main application workflow manually:
 
-### 5. Test the application
-
-Run the test scripts provided by the project:
-
-```bash
-npm test
-```
-
-If the frontend and backend have separate test suites, run the command in each respective project directory. Check each `package.json` for the configured test command.
-
-Manually verify the main workflow:
-
-1. Register a user and log in.
-2. Create an event board.
-3. Copy the board's invitation code.
-4. Join the board using another user account.
-5. Create a task and assign it to a board member.
-6. Update the task status as the assigned volunteer.
-7. Submit a written progress update.
-8. Confirm that the organiser can see the task status and update history.
-9. Open the application from another device and confirm that the latest board information is available.
-10. Restart the application and database container while retaining the configured named volume, then confirm that saved information remains available.
-
-## Environment Variables
-
-The backend uses the following environment variables:
-
-| Variable | Purpose |
-|---|---|
-| `PORT` | Backend listening port (defaults to 5000) |
-| `MONGODB_URI` | MongoDB connection string |
-| `SESSION_SECRET` | Secret used for session management |
-| `CLIENT_URL` | Frontend URL allowed by CORS |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `NODE_ENV` | Application runtime environment |
-
-Keep secrets in local environment files or deployment environment settings. Never publish actual secret values in this README or commit them to Git.
-
-For Docker, backend environment variables are supplied at container runtime rather than being embedded in the image.
-
-## Demo Link
-
-**Live Demo:** [Add your deployed application URL](<DEMO_URL>)
-
-The deployment URL is to be added once the application is deployed.
-
-## Project Board
-
-**Team Task Management Board:** [Add your project board URL](<PROJECT_BOARD_URL>)
-
-Replace the placeholder with the link to the team's task management board.
+1. Sign in using Google OAuth.
+2. Confirm that the user is authenticated.
+3. Create an event board.
+4. Confirm that the board appears on the dashboard.
+5. Copy the board's invitation code.
+6. Sign in using another account.
+7. Join the board using the invitation code.
+8. Confirm that the joined user can view the same board and its members.
+9. Create a duty as the organiser.
+10. Assign the duty to the volunteer account.
+11. Confirm that the volunteer can view the assigned duty.
+12. Update the duty description and status as the assigned volunteer.
+13. Confirm that the volunteer cannot edit restricted fields or delete the duty.
+14. Confirm that the organiser can edit and delete duties.
+15. Refresh the application and verify that authentication and saved data behave correctly.
+16. Restart the application and PostgreSQL container while retaining the named volume, then confirm that saved data remains available.
 
 ## Project Scope
 
-The MVP focuses on authentication, event board creation, volunteer invitations, task assignment, and progress tracking. Features such as AI-based volunteer assignment, automated notifications, attendance tracking, payments, advanced analytics, automated scheduling, real-time chat, a dedicated mobile application, and file attachments are outside the initial MVP scope.
+The MVP focuses on:
+
+- Google OAuth authentication.
+- User identification.
+- Board creation and management.
+- Volunteer invitations through unique invitation codes.
+- Board membership and permissions.
+- Duty creation and assignment.
+- Duty status tracking.
+- Duty updates by assigned volunteers.
+- PostgreSQL relational data storage.
+- PostgreSQL-backed session management.
+- Persistent database storage through Docker volumes.
+
+The following features are outside the initial MVP scope:
+
+- AI-based volunteer assignment.
+- Automated notifications.
+- Volunteer attendance tracking.
+- Payment management.
+- Advanced analytics.
+- Automated scheduling.
+- Real-time chat.
+- Dedicated mobile application.
+- File attachments.
+- Multiple volunteers assigned to one duty.
+- Separate written progress-update history.
+
+## Incident Tracking
+
+The repository's [team board](Docs/team-board.md) points to a clearly labeled [demo incident](Docs/mock-incident.md). It is fictional and is only for practicing the branch-and-PR workflow; replace it with the team's assigned incident before submitting the course assignment.
+
+## Demo Link
+
+**Live Demo:** Add your deployed application URL once deployment is complete.
+
+## Project Board
+
+**Team Task Management Board:** Add the team's project board URL.
 
 ---
 

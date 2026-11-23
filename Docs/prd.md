@@ -4,137 +4,126 @@
 
 ## 1. Product Overview
 
-**EventTracker** is a web application that helps campus event organisers create event boards, assign duties to volunteers, and track their progress through a centralized platform.
+**EventTracker** is a web application for managing volunteer duties during campus events. It provides organisers and volunteers with a centralized platform to manage event boards, assign responsibilities, track duty progress, and monitor updates.
 
-Organisers can create boards, assign tasks, and invite volunteers using invitation codes. Volunteers can join boards, view their responsibilities, update task statuses, and submit progress updates. The application provides a shared platform for managing event duties and monitoring their completion.
+Organisers can create boards, invite volunteers using unique invitation codes, assign duties, and monitor their completion. Volunteers can join boards, view their assigned duties, and update their descriptions and statuses.
 
 - **Product Type:** Web Application
 - **Target Environment:** Campus Events
 - **Version:** MVP 1.0
 
----
-
 ## 2. Business Problem Statement
 
-During campus events, organisers manage volunteer assignments and progress updates through multiple channels, such as chats and personal messages. This creates difficulties in tracking responsibilities, identifying incomplete tasks, and monitoring volunteer progress.
+During campus events, organisers often manage volunteer assignments and progress updates through multiple chats and personal messages. This makes it difficult to identify incomplete duties, confirm responsibilities, and track the latest updates.
 
-- **Goal:** Provide a centralized platform where organisers can assign duties, invite volunteers, and monitor event progress.
+EventTracker addresses this by providing a shared platform where organisers can create event boards, invite volunteers, assign duties, and monitor progress.
+
+- **Goal:** Centralize event duty management and progress tracking.
 - **Primary Users:** Campus event organisers.
-- **Secondary Users:** Volunteers participating in the event.
-- **Success Criteria:** Organisers can manage assignments, monitor progress, and access the latest event information across devices without losing saved data.
-
----
+- **Secondary Users:** Volunteers participating in campus events.
+- **Success Criteria:** Organisers can manage duties and monitor progress, while volunteers can access and update their assigned responsibilities.
 
 ## 3. Stakeholder & User Identification
 
 ### Stakeholder Roles
 
 | Stakeholder | Role |
-| :--- | :--- |
-| **Event Organisers** | Create boards, assign tasks, and monitor progress. |
-| **Volunteers** | Join boards, view duties, and submit updates. |
-| **Project Developers** | Develop and maintain the application. |
-| **Event Coordinator** | Reviews and approves the application. |
-
-**Primary Decision Maker:** Event organiser or event coordinator.
+|---|---|
+| Event Organisers | Create boards, assign duties, and monitor progress. |
+| Volunteers | Join boards, view assigned duties, and update their responsibilities. |
+| Project Developers | Develop and maintain the application. |
+| Event Coordinator | Reviews and approves the application. |
 
 ### User Identification and Roles
 
-- Every user must authenticate using their Google account through Google OAuth.
-- Users do not need to create a separate password or select a role during registration.
-- After successful Google authentication, users can access the application.
-- The dashboard provides two primary actions: **Create a Board** and **Join a Board**.
+- Users authenticate through Google OAuth.
+- Users do not create a separate password or select a role during registration.
+- After authentication, the dashboard provides two primary actions: **Create a Board** and **Join a Board**.
 - Users who create boards become organisers of those boards.
-- Users who join existing boards become members and can participate as volunteers.
-- Organiser and volunteer permissions are determined by their relationship with individual boards rather than a permanent role selected during registration.
-- Each registered user will receive a unique MongoDB `ObjectId`, which will serve as their permanent system identifier.
-- Google account information will be used to identify and associate the authenticated user with their application account.
-- User names will only be used for display purposes and will not be used to identify users or distinguish between accounts.
-- The same Google account must not create multiple application accounts.
+- Users who join boards become volunteers on those boards.
+- Roles are assigned per board rather than being permanent global user roles.
+- Every user has a unique PostgreSQL-generated UUID.
+- Google account information is associated with the corresponding application user record.
+- The same Google account must not create duplicate application accounts.
 
-**Authentication Scope:** Authentication is implemented using Google OAuth. Google handles the authentication process, eliminating the need for application-managed email/password registration, password hashing, or manual JWT generation.
-
----
+**Authentication Scope:** Google OAuth is used for authentication. The backend verifies the Google identity and maintains an authenticated application session using Express sessions. The application does not require a separate email/password registration system or its own JWT authentication implementation.
 
 ## 4. Business Impact
 
-- **Operational Impact:** Centralizes event assignments and reduces the need to track duties through multiple conversations.
-- **User Impact:** Gives volunteers clear responsibilities and organisers better visibility into task progress.
-- **Reliability Impact:** Keeps event information accessible across devices and protects saved data through persistent database storage.
-
-> **Note:** Financial impact and time savings have not been quantified.
-
----
+- **Operational Impact:** Centralizes event responsibilities and reduces the need to track duties through multiple conversations.
+- **User Impact:** Gives volunteers clear responsibilities and organisers better visibility into duty progress.
+- **Reliability Impact:** Stores application information in PostgreSQL with persistent database storage.
 
 ## 5. Product Objectives
 
 ### Primary Objectives
 
 - Centralize event duty assignments.
-- Allow organisers to create boards and assign tasks.
-- Enable volunteers to join boards through invitation codes.
-- Allow volunteers to update task statuses and submit progress updates.
-- Help organisers monitor task completion.
-- Allow organisers to edit and delete duties when required.
-- Maintain saved information across application restarts.
+- Allow organisers to create boards and invite volunteers.
+- Allow volunteers to join boards using invitation codes.
+- Enable organisers to create and assign duties.
+- Allow volunteers to update their assigned duties.
+- Help organisers monitor duty completion.
+- Maintain application information using persistent database storage.
 
 ### Expected Outcomes
 
-- Organisers can view all duties and their current status.
-- Volunteers can access and update their responsibilities.
-- Progress updates remain available to organisers.
-- Event information remains accessible across supported devices.
-
----
+- Organisers can view all duties on their boards.
+- Volunteers can access and update their assigned responsibilities.
+- Organisers can monitor the latest saved duty information.
+- Board information remains available after application restarts when the PostgreSQL data volume is retained.
 
 ## 6. Data Requirements
 
 ### Categories of Information
 
-- **User Information:** Unique user ID, name, email address, and associated Google account identifier.
-- **Board Information:** Board details, owner ID, members, and invitation codes.
-- **Task Information:** Task descriptions, assigned volunteer IDs, deadlines, statuses, and update versions.
-- **Progress Information:** Written updates, submission timestamps, and the IDs of users who submitted them.
+- **User Information:** Unique user ID, name, email address, and Google account identifier.
+- **Board Information:** Board ID, name, event date, location, creator ID, invitation code, and creation timestamp.
+- **Membership Information:** Board ID, user ID, board-level role, and membership timestamp.
+- **Duty Information:** Duty ID, board ID, title, description, assigned volunteer ID, creator ID, due date, status, priority, and timestamps.
+- **Session Information:** Server-side authentication session data and expiry information.
 
-### Storage & Security Technicals
+### Storage and Security
 
-- **Data Source:** Information entered by organisers and volunteers, along with identity information provided through Google OAuth.
-- **Database Technology:** MongoDB.
-- **Storage:** MongoDB with persistent storage through a Docker named volume.
+- **Database:** PostgreSQL 17.
+- **Database Driver:** `pg` (node-postgres).
 - **Authentication:** Google OAuth.
-- **Data Validation:** The application will validate user inputs, invitation codes, task assignments, and progress updates.
-- **Data Security:**
-  - Google OAuth will handle user authentication.
-  - The application will not store user passwords or implement its own password-hashing mechanism.
-  - Authenticated user identity will be established through the Google authentication flow.
-  - Protected application operations will require an authenticated user.
-  - Access to boards and tasks will be restricted according to board ownership and membership.
-  - Users will only be allowed to perform operations for which they have permission.
+- **Session Management:** Express sessions with PostgreSQL-backed storage using `connect-pg-simple`.
+- **Data Validation:** Backend validation for user inputs, invitation codes, duty assignments, dates, statuses, and priorities.
+- **Access Control:** Backend authentication and authorization checks restrict operations according to board membership and roles.
+- **Data Security:** Database credentials and application secrets are stored in environment variables.
 
 ### Unique User Identification Rules
 
-- Every registered user will have a unique MongoDB `ObjectId`.
-- The Google account identifier will be associated with the corresponding application user record.
-- The MongoDB `ObjectId` will be used as the reference when assigning volunteers to tasks and associating users with boards.
-- Two volunteers may have the same name, but their unique user IDs will distinguish their accounts.
-- Task assignments and progress updates will reference user IDs instead of names.
-- The same Google account must map to the same application user account.
+- Every registered user receives a unique PostgreSQL UUID.
+- Google account identifiers are associated with application user records.
+- User IDs are used to associate users with boards, memberships, and assigned duties.
+- Two users may have the same name, but their unique IDs distinguish their accounts.
 
----
+### Relational Database Design
+
+| Table | Purpose |
+|---|---|
+| `users` | Stores user details and Google account association. |
+| `boards` | Stores board details, creator information, and invitation codes. |
+| `board_members` | Connects users with boards and stores their board-level roles. |
+| `duties` | Stores duties, assignments, descriptions, statuses, priorities, and timestamps. |
+| `session` | Stores Express authentication sessions through the PostgreSQL session store. |
+
+Relationships are maintained using PostgreSQL UUID keys and foreign-key constraints. A user can participate in multiple boards, with a separate role for each board.
 
 ## 7. KPIs and Success Metrics
 
 | Metric | Success Measure |
-| :--- | :--- |
-| **User Authentication** | Users can authenticate successfully through Google OAuth. |
-| **Board Creation** | Organisers can successfully create boards. |
-| **Task Management** | Tasks can be created, edited, deleted, and assigned correctly. |
-| **Progress Tracking** | Task statuses and written updates are saved and displayed. |
-| **User Access** | Organisers and volunteers can access their authorized boards. |
-| **Cross-Device Access** | Latest information is accessible from another device. |
-| **Data Persistence** | Saved information remains available after container restarts. |
-
----
+|---|---|
+| User Authentication | Users can authenticate through Google OAuth. |
+| Session Management | Sessions can be restored through PostgreSQL-backed session storage. |
+| Board Creation | Organisers can successfully create boards. |
+| Board Joining | Users can join boards using valid invitation codes. |
+| Duty Management | Organisers can create, edit, delete, and assign duties. |
+| Duty Progress Tracking | Assigned volunteers can update permitted descriptions and statuses. |
+| User Access | Users can access only authorized boards and operations. |
+| Data Persistence | Saved information remains available after restarts when the PostgreSQL volume is retained. |
 
 ## 8. User Stories and Acceptance Criteria
 
@@ -142,95 +131,84 @@ During campus events, organisers manage volunteer assignments and progress updat
 
 **As a** user, **I want to** log in using my Google account **so that** I can securely access the application without creating a separate password.
 
-*Acceptance Criteria:*
+**Acceptance Criteria:**
 
-- Users can authenticate successfully using Google OAuth.
-- Users can access the application after successful Google authentication.
-- Users do not need to register using a separate email/password form.
-- Users do not need to select an Organiser or Volunteer role during registration.
-- Each application user receives a unique MongoDB `ObjectId`.
-- The authenticated Google account is associated with the corresponding application user.
-- The same Google account must not create duplicate application accounts.
-- Unauthenticated users cannot access protected application functionality.
-- Users can sign out of their authenticated session.
+- Users can authenticate using Google OAuth.
+- The backend verifies the Google identity.
+- The system finds or creates the corresponding application user in PostgreSQL.
+- Every application user receives a unique PostgreSQL UUID.
+- Users do not need a separate email/password registration flow.
+- Users do not select an organiser or volunteer role during registration.
+- Authenticated sessions are stored in PostgreSQL.
+- Unauthenticated users cannot access protected functionality.
+- Users can log out successfully.
 
 ### US-02: Board Management
 
 **As an** organiser, **I want to** create boards and invite volunteers **so that** event responsibilities can be managed centrally.
 
-*Acceptance Criteria:*
+**Acceptance Criteria:**
 
 - Authenticated users can create boards.
-- A user who creates a board becomes its designated organiser and owner.
-- Each board has a designated owner.
-- Unique invitation codes are generated for boards.
+- A user who creates a board becomes its organiser.
+- Each board receives a unique invitation code.
 - Other authenticated users can join using valid invitation codes.
 - Invalid invitation codes are rejected.
-- Board membership is associated with unique user IDs.
-- Only the board owner can manage their board.
+- Users who join boards become volunteers on those boards.
+- Board membership and roles are stored in PostgreSQL.
+- Only authorized board members can view a board.
 
-### US-03: Task Assignment
+### US-03: Duty Assignment
 
-**As an** organiser, **I want to** create tasks and assign volunteers **so that** responsibilities are clearly distributed.
+**As an** organiser, **I want to** create duties and assign volunteers **so that** responsibilities are clearly distributed.
 
-*Acceptance Criteria:*
+**Acceptance Criteria:**
 
-- Organisers can create tasks on their own boards.
-- Organisers can assign tasks to volunteers who are members of the respective board.
-- Each task will have one assigned volunteer in MVP 1.0.
-- Assigned volunteers and task details are displayed.
-- Organisers can edit task descriptions, deadlines, and assignments after creation.
-- Organisers can delete tasks from their boards.
-- Deleted tasks will be archived or soft-deleted instead of permanently removed, preserving their existing progress history.
-- Volunteers cannot create, edit, or delete tasks.
+- Organisers can create duties on boards they organize.
+- Organisers can assign duties to volunteers who belong to the same board.
+- Each duty has one assigned volunteer in the MVP.
+- Duty details include title, description, due date, status, and priority.
+- Organisers can edit all duty fields.
+- Organisers can delete duties from their boards.
+- Volunteers cannot create or delete duties.
+- Duty information is stored in PostgreSQL.
 
-### US-04: Progress Tracking
+### US-04: Duty Progress Updates
 
-**As a** volunteer, **I want to** update my task status and submit progress updates.
+**As a** volunteer, **I want to** update the description and status of my assigned duties **so that** organisers can monitor my progress.
 
-*Acceptance Criteria:*
+**Acceptance Criteria:**
 
-- Volunteers can update their assigned tasks.
-- Available statuses are **Pending**, **In Progress**, and **Completed**.
-- Volunteers can submit written progress updates.
-- Written progress updates are saved with their submission timestamps and user IDs.
-- Previous progress updates remain available as history.
-- Volunteers cannot update tasks assigned to other users.
+- Volunteers can view duties belonging to boards they have joined.
+- Volunteers can update only duties assigned to them.
+- Volunteers can update the description of their assigned duties.
+- Volunteers can update the status of their assigned duties.
+- Volunteers cannot change the title, due date, priority, or assigned volunteer.
+- Available statuses are `Pending`, `In Progress`, and `Completed`.
+- Organisers can view the latest saved duty information.
 
 ### US-05: Board Monitoring
 
-**As an** organiser, **I want to** view all tasks and their progress.
+**As an** organiser, **I want to** view all duties and their progress **so that** I can monitor event responsibilities.
 
-*Acceptance Criteria:*
+**Acceptance Criteria:**
 
-- Organisers can view assignments, volunteers, and task statuses on their own boards.
-- Organisers can view submitted progress updates.
-- Organisers can identify incomplete and completed tasks.
-- Organisers can view the latest saved information.
+- Organisers can view duties on their boards.
+- Organisers can see assigned volunteers and duty details.
+- Organisers can view the latest saved descriptions and statuses.
+- Organisers can identify pending, in-progress, and completed duties.
+- Authorized board members can view duties belonging to their boards.
 
 ### US-06: Data Availability
 
-**As a** user, **I want** my event information to remain available across devices and application restarts.
+**As a** user, **I want to** access saved event information after application restarts **so that** my work is not lost.
 
-*Acceptance Criteria:*
+**Acceptance Criteria:**
 
-- The latest saved information is accessible across devices.
-- Application and database container restarts do not erase saved information when the existing persistent volume is retained.
-
-### US-07: Concurrent Update Handling
-
-**As a** user, **I want** conflicting updates to be handled safely **so that** another user's changes are not accidentally overwritten.
-
-*Acceptance Criteria:*
-
-- Each task will maintain a version number.
-- The version number will increment whenever a task is successfully updated.
-- An update must include the version number of the task that the user last retrieved.
-- If another user has already modified the task, the outdated update will be rejected.
-- The application will display a message informing the user that the task has been updated by someone else.
-- The user must refresh the task to view the latest information before submitting another update.
-
----
+- Board and duty information is retrieved from PostgreSQL.
+- Users can access information permitted by their board membership.
+- Application and database container restarts do not erase saved information when the existing PostgreSQL volume is retained.
+- Authentication sessions are stored in PostgreSQL, subject to session expiry and cookie settings.
 
 ## 9. Feature Scope
 
@@ -238,218 +216,214 @@ During campus events, organisers manage volunteer assignments and progress updat
 
 - Google OAuth authentication.
 - Google account-based user identification.
-- Unique MongoDB user identification.
+- PostgreSQL UUID-based user identification.
+- Express session management.
+- PostgreSQL-backed session storage.
 - Board creation.
-- Invitation code generation and board joining.
-- Organiser and volunteer permissions based on board ownership and membership.
-- Task creation and volunteer assignment.
-- Task editing and deletion by authorized organisers.
-- Task status management.
-- Written progress updates and history.
-- Concurrent update conflict handling.
+- Unique invitation code generation.
+- Joining boards using invitation codes.
+- Board membership management.
+- Organiser and volunteer permissions based on board membership.
+- Duty creation and volunteer assignment.
+- Duty editing and deletion by organisers.
+- Duty description and status updates by assigned volunteers.
+- Duty status management.
 - Centralized event duty board.
-- MongoDB data storage.
-- Docker containerization and Docker Compose.
-- Application and database health checks.
+- PostgreSQL relational data storage.
+- Dockerized PostgreSQL development database with persistent storage.
+- Backend health check for server and database connectivity.
 
 ### Out of Scope – MVP 1.0
 
-- AI-based task assignment.
+- AI-based duty assignment.
 - Automated notifications.
 - Volunteer attendance tracking.
 - Payment management.
 - Advanced analytics.
+- Automated scheduling.
 - Real-time chat.
 - Dedicated mobile application.
 - File attachments.
-- Multi-volunteer assignment to a single task.
+- Multiple volunteers assigned to a single duty.
 - Separate email/password authentication.
 - Application-managed password storage and hashing.
+- Separate written progress-update history.
+- Duty soft deletion or archival history.
+- Optimistic concurrency control.
 
-> **MVP Limitation:** The initial version focuses on event duty management and progress tracking rather than a complete event management platform.
-
----
+**MVP Limitation:** The initial version focuses on board-based event duty management and status tracking. It does not maintain a separate history of written progress updates.
 
 ## 10. Application Workflow
 
-1. A user opens the EventTracker application.
-2. The user selects the Google login option.
+1. A user opens EventTracker.
+2. The user selects Google login.
 3. Google OAuth authenticates the user.
-4. After successful authentication, the user is redirected to the application.
-5. The system identifies the user and associates them with their application account.
-6. The dashboard displays two primary actions: **Create a Board** and **Join a Board**.
-7. A user who creates a board becomes its organiser.
-8. The system generates a unique invitation code for the board.
-9. Other authenticated users can join using the invitation code and become board members.
-10. The organiser creates tasks and assigns them to board members.
-11. The organiser can edit or delete duties when necessary.
-12. Volunteers view their assigned tasks and update their progress.
-13. The system saves task statuses and written progress updates.
-14. The organiser monitors task statuses and progress updates.
-15. All information is stored in MongoDB and remains accessible across supported devices.
-
----
+4. The backend verifies the authentication result.
+5. The system finds or creates the corresponding user record in PostgreSQL.
+6. The backend creates an authenticated server-side session and stores it in PostgreSQL.
+7. The user is redirected to the dashboard.
+8. The dashboard displays **Create a Board** and **Join a Board**.
+9. A user who creates a board becomes its organiser.
+10. The system generates a unique invitation code.
+11. Other authenticated users can join using the invitation code and become volunteers.
+12. The organiser creates duties and assigns them to board volunteers.
+13. The organiser can edit or delete duties.
+14. Volunteers view their assigned duties and update descriptions and statuses.
+15. The organiser monitors the latest saved duty information.
+16. Board, membership, duty, and session information is stored in PostgreSQL.
 
 ## 11. Technical Workflow
 
-### Proposed Application Architecture
+### Application Architecture
 
-- **Frontend:** User interface for Google authentication, board management, and task tracking.
-- **Backend:** Handles application logic, authenticated user requests, board management, and task operations.
-- **Database:** MongoDB stores user, board, task, and progress information.
-- **Authentication Provider:** Google OAuth handles user authentication.
-- **Deployment:** Makes the application accessible through a shared web address.
+- **Frontend:** React application built with Vite.
+- **Backend:** Node.js with Express.js.
+- **Database:** PostgreSQL 17.
+- **Database Driver:** `pg` (node-postgres).
+- **Authentication Provider:** Google OAuth.
+- **Authentication Verification:** `google-auth-library`.
+- **Session Management:** `express-session`.
+- **Session Storage:** `connect-pg-simple`.
+- **API Communication:** REST APIs.
+- **Containerization:** Docker and Docker Compose for the PostgreSQL development database.
 
 ### Technology Stack
 
 | Component | Technology |
-| :--- | :--- |
-| **Frontend** | React.js |
-| **Backend** | Node.js with Express.js |
-| **Database** | MongoDB |
-| **Authentication** | Google OAuth |
-| **API Communication** | REST APIs |
-| **Containerization** | Docker |
-| **Service Orchestration** | Docker Compose |
-| **Deployment** | Vercel / Render |
+|---|---|
+| Frontend | React.js |
+| Frontend Build Tool | Vite |
+| Backend | Node.js, Express.js |
+| Database | PostgreSQL 17 |
+| Database Driver | `pg` |
+| Authentication | Google OAuth |
+| Authentication Verification | `google-auth-library` |
+| Session Management | `express-session` |
+| Session Storage | `connect-pg-simple` |
+| API Communication | REST APIs |
+| Containerization | Docker |
+| Service Orchestration | Docker Compose |
 
 ### API Requirements
 
-The backend will provide REST APIs for:
+The backend provides REST APIs for:
 
-- Google OAuth authenticated user access.
-- User identification and account association.
-- Board creation and management.
-- Volunteer board joining.
-- Task creation, editing, deletion, and assignment.
-- Task status updates.
-- Progress submission and retrieval.
+- Google OAuth authentication and authenticated user access.
+- Session restoration and logout.
+- Board creation and retrieval.
+- Joining boards using invitation codes.
+- Board details and membership retrieval.
+- Duty creation and assignment.
+- Duty listing and individual duty retrieval.
+- Duty editing and deletion.
 
-The APIs will enforce authenticated access, input validation, and board ownership or membership permissions.
-
-*External API Integration:* Google OAuth is used as the external authentication provider. Apart from Google authentication, no additional third-party APIs are required for the initial MVP. The application uses its own REST APIs for frontend and backend communication.
+The APIs enforce authentication, input validation, and board ownership or membership permissions.
 
 ### Authentication and Authorization
 
 - Users authenticate through Google OAuth.
-- Google handles the authentication process without requiring users to create or maintain a separate application password.
-- After successful authentication, the application associates the authenticated Google account with its corresponding user record.
-- Each application user is identified internally using a unique MongoDB `ObjectId`.
-- The application does not implement its own password hashing using bcrypt or generate its own JWT authentication tokens.
-- Protected application functionality requires an authenticated user.
-- Authenticated user identity must be verified before processing protected backend operations.
-- Organisers can manage only the boards they own.
+- The backend verifies the Google authentication result.
+- Application accounts are associated with Google identities.
+- Each user is identified internally using a PostgreSQL UUID.
+- Express sessions maintain authenticated application state.
+- Session data is stored in PostgreSQL.
+- Protected operations require an authenticated session.
+- Organisers can manage duties on boards they organize.
 - Volunteers can access boards they have joined.
-- Volunteers can update only their assigned tasks.
-- Unauthorized operations will return appropriate HTTP error responses.
+- Volunteers can update only the descriptions and statuses of duties assigned to them.
+- Unauthorized operations return appropriate HTTP error responses.
 
-### Database Design and Identification
+### Database Design and Relationships
 
-MongoDB will be used as the primary database throughout the application.
+PostgreSQL is the primary relational database for EventTracker.
 
-**Proposed Collections:**
+**Tables:**
 
-- `Users`: Stores application user information, Google account association, email addresses, names, and unique user IDs.
-- `Boards`: Stores board details, organiser IDs, invitation codes, and member IDs.
-- `Tasks`: Stores task descriptions, assigned volunteer IDs, deadlines, statuses, and version numbers.
-- `ProgressUpdates`: Stores written progress updates, associated task IDs, user IDs, and timestamps.
+- `users`: Stores application user information and Google account association.
+- `boards`: Stores board details, creator IDs, invitation codes, dates, locations, and timestamps.
+- `board_members`: Stores board membership and board-level roles.
+- `duties`: Stores duty details, assigned volunteer IDs, creator IDs, due dates, statuses, priorities, and timestamps.
+- `session`: Stores Express session data and expiry information.
 
-Relationships between records will be maintained using MongoDB `ObjectIds`.
+**Relationships:**
 
-### Concurrent Update Handling
+- A user can create multiple boards.
+- A board has one creator/organiser.
+- A user can join multiple boards.
+- `board_members` connects users and boards and stores each user's role for that board.
+- A board can contain multiple duties.
+- Each duty belongs to one board and is assigned to one volunteer who belongs to that board.
+- User and board references use PostgreSQL UUIDs and foreign-key relationships.
 
-The application will use optimistic concurrency control to prevent simultaneous updates from overwriting one another.
+### Database Connection and Persistence
 
-- Every task document will contain a `version` field.
-- When a user retrieves a task, its current version is returned.
-- When submitting an update, the client sends the version it last retrieved.
-- The backend performs an atomic MongoDB update that checks both the task ID and expected version.
-- If the version matches, the update succeeds and the version increments.
-- If the version does not match, the update is rejected with **HTTP 409 Conflict**.
-- The frontend displays a message asking the user to refresh and review the latest task information.
+- The backend connects to PostgreSQL using a connection pool from `pg`.
+- Database connection details are supplied through environment variables.
+- PostgreSQL runs in Docker during local development.
+- Docker Compose manages the PostgreSQL service.
+- A named Docker volume stores PostgreSQL data persistently.
+- Restarting the database container does not erase saved data when the existing volume is retained.
+- Database credentials and application secrets are stored in environment variables.
 
 ### Dockerization
 
-- Separate Dockerfiles for frontend and backend.
-- MongoDB running as a separate service using its official Docker image.
-- Docker Compose to manage all application services.
-- Dedicated Docker network for service communication.
-- Environment variables for application configuration and credentials.
-- Named Docker volume for persistent MongoDB storage.
-- Health checks for service availability and database connectivity.
-- Service dependencies configured to ensure that dependent services start only after their required services are healthy.
+- PostgreSQL runs using the official PostgreSQL Docker image.
+- Docker Compose manages the PostgreSQL service.
+- A named Docker volume provides persistent database storage.
+- Environment variables configure database credentials and connection details.
+- The backend connects using its configured database connection string.
+- The backend exposes a `/health` endpoint to verify server and database connectivity.
 
-*Data Persistence Requirement:* Recreating or restarting application containers must not delete saved database information. MongoDB data must remain available through its existing named volume.
+**Current Development Setup:** PostgreSQL is containerized through Docker Compose. The frontend and backend can be run locally during development. Full frontend/backend/database container orchestration and production deployment are not considered completed unless separately configured.
+
+**Data Persistence Requirement:** The PostgreSQL named volume must be retained to preserve saved data. Removing the volume will delete the stored database data.
 
 ### Application Health Checks
 
-Docker health checks will be configured to verify that the application services are operational.
+The backend exposes a `/health` endpoint to verify that the Express server can communicate with PostgreSQL.
 
-- **Frontend Health Check:**
-  - Verify that the frontend application is running.
-  - Send an HTTP request to its health endpoint or configured application route.
-  - Confirm that the frontend responds successfully.
+- The endpoint executes a database query to confirm connectivity.
+- A healthy response is returned when the database connection is available.
+- An unhealthy response is returned when the database connection is unavailable.
 
-- **Backend Health Check:**
-  - Verify that the Node.js/Express server is running.
-  - Send an HTTP request to the backend `/health` endpoint.
-  - Confirm that the backend can communicate with MongoDB through a database ping.
-  - Return a healthy response only when the backend is responsive and the database connection is available.
-
-- **MongoDB Health Check:**
-  - Execute MongoDB's `ping` command.
-  - Confirm that the database server is accepting requests and responding successfully.
-
-**Expected Behaviour:**
-
-- Docker should report each service as healthy only after its configured checks succeed.
-- If a service becomes unavailable, Docker should report it as unhealthy.
-- Backend-dependent services should wait for MongoDB to become healthy before starting.
-- Health checks will verify service availability and connectivity; they will not replace full application workflow testing.
-
----
+Health checks verify service availability and database connectivity; they do not replace full application workflow testing.
 
 ## 12. Risks, Security, and Assumptions
 
-### Risks & Mitigations
+### Risks and Mitigations
 
 | Risk | Mitigation |
-| :--- | :--- |
-| **Internet connectivity issues** | Require internet access for application usage and Google authentication. |
-| **Database data loss** | Configure persistent MongoDB storage. |
-| **Unauthorized board access** | Enforce authenticated access and board membership permissions. |
-| **Incorrect task updates** | Restrict updates to assigned volunteers. |
-| **Duplicate user identification** | Use unique MongoDB `ObjectIds` and associate accounts with Google identities. |
-| **Conflicting task updates** | Implement optimistic concurrency control using version numbers. |
-| **Unauthorized task modification** | Allow only the board owner to edit or delete duties. |
-| **Invalid user input** | Validate data on frontend and backend. |
-| **Docker service failure** | Configure health checks and service dependencies. |
-| **Exposed credentials** | Store secrets in environment variables and exclude them from version control. |
-| **Authentication provider unavailability** | Depend on Google's authentication service for Google OAuth login. |
+|---|---|
+| Internet connectivity issues | Internet access is required for Google authentication. |
+| Database data loss | Use a persistent PostgreSQL named volume. |
+| Unauthorized board access | Enforce authenticated access and membership checks. |
+| Incorrect duty updates | Restrict volunteer updates to descriptions and statuses. |
+| Duplicate user identification | Use unique PostgreSQL UUIDs and Google account association. |
+| Unauthorized duty modification | Restrict duty operations according to board-level roles. |
+| Invalid user input | Validate input on the backend. |
+| Database connection failure | Use connection error handling and health checks. |
+| Exposed credentials | Store secrets in environment variables. |
+| Session expiry | Configure session expiry and cookie settings. |
 
 ### Assumptions
 
-- Organisers and volunteers can access the application through a web address.
-- Users will authenticate through their Google accounts.
-- Google authentication will be available when users need to sign in.
-- Users will choose between creating a board and joining a board after authentication.
-- Users who create boards will act as organisers of those boards.
-- Users who join boards will act as volunteers or board members.
-- Each user account will have a unique system-generated MongoDB `ObjectId`.
-- Three task statuses are sufficient for the MVP.
-- Each task will have one assigned volunteer.
-- Only the board owner can create, edit, or delete duties.
-- All board members can view tasks, but only authorized users can modify them.
-- Internet connectivity will be available.
-- MongoDB's existing named Docker volume will be retained for data persistence.
-
-> **Privacy Consideration:** Only information required for user accounts and event management will be collected. Google account information will be used for authentication and account identification.
-
----
+- Users access the application through a web browser.
+- Users authenticate through Google accounts.
+- Users choose between creating and joining boards after authentication.
+- Board creators act as organisers.
+- Board joiners act as volunteers.
+- Roles are specific to individual boards.
+- Each duty has one assigned volunteer.
+- Three duty statuses are sufficient for the MVP.
+- Organisers can edit all duty fields.
+- Assigned volunteers can edit only descriptions and statuses.
+- All authorized board members can view duties belonging to their boards.
+- Internet connectivity is available.
+- The PostgreSQL named volume is retained to preserve local database data.
 
 ## 13. Basic Wireframe Plan
 
-The interface will prioritize simplicity, clear task ownership, and easy progress tracking.
+The interface prioritizes simplicity, clear duty ownership, and easy progress tracking.
 
 **Main Screens:**
 
@@ -457,139 +431,133 @@ The interface will prioritize simplicity, clear task ownership, and easy progres
 - Dashboard Page
 - Create Board Page
 - Join Board Page
-- Board Tasks Page
-- Create and Edit Task Page
-- Task Details Page
-- Progress Updates Section
-
----
+- Board Details Page
+- Create Duty Interface
+- Duty Details Page
+- Edit Duty Interface
 
 ## 14. Dependencies
 
-- React.js and Node.js/Express.js development environments.
-- MongoDB database.
-- Google OAuth configuration and credentials.
+- Node.js and npm.
+- React.js and Vite.
+- Express.js.
+- PostgreSQL 17.
+- `pg` for database connectivity.
+- `express-session` for server-side sessions.
+- `connect-pg-simple` for PostgreSQL-backed session storage.
+- `google-auth-library` for Google authentication verification.
+- Google OAuth configuration.
 - Docker and Docker Compose.
-- Environment variables for application configuration and authentication credentials.
-- Persistent storage for MongoDB.
-- Deployment environment supporting the selected application services.
+- Environment variables for application configuration.
+- Persistent PostgreSQL storage.
 - Internet connectivity.
-
----
 
 ## 15. Delivery and Release Plan
 
 ### Team Responsibilities and Delivery Timeline
 
-| Week | Development Area | Responsible Member | Assigned Tasks | Deadline |
-| :--- | :--- | :--- | :--- | :--- |
-| **1st Week** | Backend API Development | Yohan | Authentication functionality | 1st week |
-| | | Ain | Board management functionality | 1st week |
-| | | Rishitha | Task management and progress tracking functionality | 1st week |
-| **2nd Week** | Frontend Development | Yohan | Google Login Page | 2nd week |
-| | | Ain | Dashboard Page, Create Board Page, and Join Board Page | 2nd week |
-| | | Rishitha | Board Tasks Page, Create Task Page, Task Details Page, and Progress Updates Section | 2nd week |
-| **3rd Week** | Database Design & Integration | Yohan | `Users` collection and Google account association | 3rd week |
-| | | Ain | `Boards` collection, invitation codes, owners, and members | 3rd week |
-| | | Rishitha | `Tasks` and `ProgressUpdates` collections | 3rd week |
-| **4th Week** | Docker & Containerization | Yohan | Frontend Dockerfile | 4th week |
-| | | Ain | Docker Compose, MongoDB service, network, and persistent volume | 4th week |
-| | | Rishitha | Backend Dockerfile, environment variables, and database connection configuration | 4th week |
-| **5th Week** | Application Integration & Delivery | Project Team | Integrate all components, verify workflows, and prepare final deployment | 5th week |
+| Week | Development Area | Responsible Member | Assigned Tasks |
+|---|---|---|---|
+| 1st Week | Backend API Development | Yohan | Authentication functionality |
+| 1st Week | Backend API Development | Ain | Board management functionality |
+| 1st Week | Backend API Development | Rishitha | Duty management functionality |
+| 2nd Week | Frontend Development | Yohan | Google Login Page |
+| 2nd Week | Frontend Development | Ain | Dashboard, Create Board, and Join Board pages |
+| 2nd Week | Frontend Development | Rishitha | Board Details, Create Duty, Duty Details, and duty update interfaces |
+| 3rd Week | Database Design and Integration | Project Team | PostgreSQL schema design, relationships, and backend integration |
+| 4th Week | Docker and Environment Configuration | Project Team | PostgreSQL Docker service, persistent volume, and environment configuration |
+| 5th Week | Application Integration and Delivery | Project Team | Integration testing and final deployment preparation |
 
 ### Delivery Approach
 
-#### Phase 1 – Application Development (Weeks 1–3)
+**Phase 1 – Application Development**
 
 - Develop backend functionality.
-- Build the required frontend pages.
-- Implement Google OAuth authentication.
-- Design and integrate MongoDB collections.
-- Implement user identification and board-level permissions.
-- Connect the frontend, backend, and database.
-- Implement task management and progress tracking.
+- Build frontend pages.
+- Implement Google OAuth.
+- Design PostgreSQL tables and relationships.
+- Implement UUID-based user identification.
+- Implement board-level roles and permissions.
+- Connect frontend, backend, and database.
+- Implement duty management and status tracking.
 
-#### Phase 2 – Containerization (Week 4)
+**Phase 2 – Database Containerization**
 
-- Create frontend and backend Dockerfiles.
+- Configure PostgreSQL using Docker.
 - Configure Docker Compose.
-- Configure MongoDB persistent storage.
-- Set up service communication and health checks.
-- Verify container startup and database connectivity.
+- Configure persistent PostgreSQL storage.
+- Set up environment variables.
+- Verify database startup and connectivity.
+- Test data persistence after container restarts.
 
-#### Phase 3 – Integration and Final Delivery (Week 5)
+**Phase 3 – Integration and Final Delivery**
 
 - Integrate all application components.
-- Verify the main application workflows.
-- Test concurrent task updates.
-- Run the application using Docker Compose.
-- Demonstrate data persistence after container restarts.
-- Prepare the final application deployment.
+- Verify main workflows through the frontend.
+- Test organiser and volunteer permissions.
+- Test authentication and session persistence.
+- Test board creation and joining.
+- Test duty creation, assignment, editing, and deletion.
+- Verify PostgreSQL data persistence.
+- Prepare final deployment.
 
 ### Validation and Demonstration
 
-The team will validate the main application workflows, including:
+The team will validate:
 
 - Google OAuth authentication.
-- Application user identification.
-- Unique user identification.
-- Dashboard access after authentication.
-- Board creation and volunteer joining.
-- Task creation and assignment.
-- Task editing and deletion by organisers.
-- Task status and progress updates.
-- Concurrent update conflict handling.
-- Organiser access to task progress.
+- User identification.
+- Dashboard access.
+- Session persistence and logout.
+- Board creation.
+- Invitation code generation and joining.
+- Board and member visibility.
+- Duty creation and assignment.
+- Duty editing and deletion by organisers.
+- Description and status updates by assigned volunteers.
 - Access restrictions for unauthorized users.
-- Cross-device access.
-- Frontend, backend, and database health checks.
-- Data persistence after container restarts.
+- PostgreSQL connectivity and health checks.
+- Data persistence after database container restarts.
 
 ### Expected Deliverables
 
 - Working EventTracker web application.
 - Frontend and backend source code.
-- MongoDB integration.
+- PostgreSQL database schema and integration.
 - REST API implementation.
 - Google OAuth authentication.
-- User identification and authorization functionality.
-- Frontend and backend Dockerfiles.
-- Docker Compose configuration.
+- PostgreSQL-backed session management.
+- Board management and invitation code functionality.
+- Duty management and status tracking.
+- Docker Compose configuration for PostgreSQL.
 - Persistent database storage configuration.
-- Service health check configuration.
-- Deployed application.
-- `README.md` with setup and execution instructions.
-
-> **Deployment Environment:** To be finalized.
-
----
+- Backend health check.
+- README with setup and execution instructions.
 
 ## 16. Final Acceptance Criteria
 
 The MVP will be considered ready for release when:
 
-- Users can authenticate using Google OAuth.
-- Users can access the application after successful Google authentication.
-- Users do not need to create a separate application password.
-- Every application user receives a unique system-generated MongoDB `ObjectId`.
-- Google accounts are correctly associated with application user records.
-- Users can create boards and become their organisers.
+- Users can authenticate through Google OAuth.
+- Every application user receives a unique PostgreSQL UUID.
+- Google accounts are associated with application user records.
+- Authenticated sessions are stored in PostgreSQL.
+- Users can create boards and become organisers.
 - Organisers can invite volunteers through unique invitation codes.
 - Volunteers can join boards using invitation codes.
-- Organisers can create, edit, and delete duties on their own boards.
-- Organisers can assign tasks to board members.
-- Volunteers can update their assigned task statuses.
-- Volunteers can submit written progress updates.
-- Organisers can view all assignments and progress.
-- Previous progress history is preserved when tasks are deleted.
-- Conflicting updates are detected and handled without silently overwriting data.
+- Board membership and roles are stored correctly.
+- Organisers can create, edit, and delete duties on their boards.
+- Organisers can assign duties to volunteers belonging to the respective board.
+- Volunteers can view duties on boards they have joined.
+- Volunteers can update descriptions and statuses of their assigned duties.
+- Volunteers cannot modify restricted duty fields or duties assigned to other users.
+- Organisers can view the latest saved duty information.
 - Unauthorized users cannot access or modify restricted information.
-- The application runs using Docker Compose.
-- Frontend, backend, and database services communicate correctly.
-- Health checks correctly verify service availability and database connectivity.
-- MongoDB uses persistent storage.
-- Saved information remains available after application and database container restarts, provided the existing volume is retained.
+- The backend communicates successfully with PostgreSQL.
+- PostgreSQL runs with persistent storage through the configured Docker volume.
+- Saved information remains available after application and database container restarts when the existing volume is retained.
+- Authentication, board management, duty management, and permissions work correctly through the frontend.
 
 ---
 
-**Final Product Scope:** EventTracker is a centralized campus event duty management application that simplifies volunteer assignments, task tracking, and progress monitoring through a web-based platform with Google OAuth authentication, board-based permissions, MongoDB data storage, Docker-based deployment, and persistent data storage.
+**Final Product Scope:** EventTracker is a centralized campus event duty management application that simplifies volunteer assignments, duty tracking, and progress monitoring through Google OAuth authentication, board-based permissions, PostgreSQL relational data storage, PostgreSQL-backed sessions, and persistent database storage.
