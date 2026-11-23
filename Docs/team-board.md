@@ -1,9 +1,9 @@
 # EventTracker Team Board
 
-This lightweight repository board is for workflow practice. Its demo incident is fictional and is not a report of a production outage.
+This repository board points to the team's reported application incident. It is not a substitute for an external course tracker if one is required.
 
 | Status | Work item | Owner |
 |---|---|---|
-| To do | [DEMO: Volunteers cannot join a board with a valid invitation code](mock-incident.md) | Unassigned |
+| Reported; reproduction pending | [Signed-in users are redirected to sign up](incident-auth-redirect.md) | Unassigned |
 
-Move an item only when the team agrees its status has changed. Replace this practice board with the team's assigned board or issue tracker for actual project work.
+Update the status and owner only when the team confirms a change. The external tracker URL was not provided; link this report to the assigned course issue if the course uses a separate tracker.

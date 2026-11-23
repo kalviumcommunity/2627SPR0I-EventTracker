@@ -374,7 +374,7 @@ The following features are outside the initial MVP scope:
 
 ## Incident Tracking
 
-The repository's [team board](Docs/team-board.md) points to a clearly labeled [demo incident](Docs/mock-incident.md). It is fictional and is only for practicing the branch-and-PR workflow; replace it with the team's assigned incident before submitting the course assignment.
+The [team board](Docs/team-board.md) tracks the reported sign-in redirect incident. The report is based on the behavior described by the team and has not yet been independently reproduced. Use the [workflow submission checklist](Docs/workflow-submission.md) when preparing a branch, pull request, teammate review, and recording.
 
 ## Demo Link
 
