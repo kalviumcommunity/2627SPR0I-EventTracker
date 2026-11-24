@@ -38,7 +38,6 @@ function LandingPage() {
     <main className="landing-page">
       <section className="landing-hero">
         <div className="hero-copy">
-          <span className="eyebrow">EVENT OPERATIONS PLATFORM</span>
           <h1>
             Less chaos.
             <br />

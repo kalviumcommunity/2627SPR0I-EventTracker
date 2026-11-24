@@ -166,13 +166,6 @@
   line-height: 1.4;
 }
 
-.hero-copy > .eyebrow {
-  padding: 7px 15px;
-  border: 1px solid #17191c;
-  background: #e8e8ed;
-  clip-path: polygon(0 0, 7px 0, 7px 3px, calc(100% - 7px) 3px, calc(100% - 7px) 0, 100% 0, 100% 100%, calc(100% - 7px) 100%, calc(100% - 7px) calc(100% - 3px), 7px calc(100% - 3px), 7px 100%, 0 100%);
-}
-
 .hero-copy h1 {
   margin: 20px 0 24px;
   color: #090a0b;
