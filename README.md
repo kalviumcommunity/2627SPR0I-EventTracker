@@ -29,25 +29,25 @@ cd 2627SPR0I-EventTracker
 
 ### 2. Configure Environment Variables
 
-Create your backend environment file using the example:
+Create a local backend config from the example. If `backend/.env` already exists, edit that private file rather than overwriting it:
 
 ```bash
 cp backend/.env.example backend/.env
 ```
 
-Open `backend/.env` and configure the required values, including:
+Make sure `backend/.env` has all backend and local Compose variables listed below. Replace the placeholder database password and session secret with local values, and keep this config untracked.
 
-- PostgreSQL username, password, and database name
-- Database connection URL
-- Session secret
-- Google OAuth client ID
-- Frontend client URL
+Create a frontend config from its example. If `frontend/.env` already exists, edit it rather than overwriting it:
 
-Do not commit your `.env` file or expose your credentials.
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+Set `VITE_GOOGLE_CLIENT_ID` to the Google OAuth client ID used by the backend. Vite embeds `VITE_*` values into the frontend bundle; do not put secrets in frontend env files.
 
 ### 3. Start the Backend and Database
 
-Run the following command from the project root:
+Build and start with the local backend config from the project root:
 
 ```bash
 docker compose --env-file backend/.env up --build -d
@@ -106,6 +106,18 @@ http://localhost:5173
 
 The database initialization script is automatically executed when PostgreSQL initializes a new, empty data directory.
 
+## Local and Demo Configuration
+
+The backend image is tagged `eventtracker-backend:lean`. Build it once using the local Compose command above. To run that same image against a demo-host database, copy `backend/.env.demo.example` to the ignored `backend/.env.demo`, replace its placeholders with the demo host's private values, and run:
+
+```bash
+docker run --rm --env-file backend/.env.demo -p 5000:5000 eventtracker-backend:lean
+```
+
+This command does not build an image. The image reads `DATABASE_URL`, `CLIENT_URL`, `SESSION_SECRET`, and `GOOGLE_CLIENT_ID` at container startup, so local and demo settings can differ without changing the image. Keep the demo config out of Git. If a campus-specific endpoint is needed, use another ignored config file with the same image.
+
+The frontend has a separate `frontend/.env.demo.example` for its demo API URL and OAuth client ID. Copy it to `frontend/.env.demo` and build the frontend with `npm run build -- --mode demo`. Vite embeds these public `VITE_*` values at frontend build time; this does not rebuild the backend image.
+
 ## Backend Image Size
 
 Measure the local backend image with:
@@ -134,20 +146,36 @@ EventTracker/
 │   ├── Dockerfile
 │   ├── .dockerignore
 │   ├── .env.example
+│   ├── .env.demo.example
 │   └── package.json
-├── src/
+├── frontend/
+│   ├── .env.example
+│   ├── .env.demo.example
+│   └── src/
 ├── docker-compose.yml
 ├── README.md
 └── package.json
 ```
 
-## Environment and Security
+## Environment Variables
 
-- Environment variables are used to configure ports and database credentials.
-- Actual environment files are excluded from Git.
-- Docker Compose provides the PostgreSQL service to the backend.
-- The backend connects to PostgreSQL using the Compose service name `postgres`.
-- Database credentials are not hardcoded into the application configuration.
+The committed `.env.example` files contain placeholders or safe local defaults only. Use private, ignored env files for real credentials and hostnames.
+
+| Variable | Used by | Purpose |
+|---|---|---|
+| `PORT` | Backend and Docker Compose | Backend listening port; defaults to `5000`. |
+| `NODE_ENV` | Backend and Docker Compose | Runtime mode; controls production cookie security. |
+| `POSTGRES_USER` | Docker Compose | Local PostgreSQL username. |
+| `POSTGRES_PASSWORD` | Docker Compose | Local PostgreSQL password. Keep the real value private. |
+| `POSTGRES_DB` | Docker Compose | Local PostgreSQL database name. |
+| `DATABASE_URL` | Backend and Docker Compose | PostgreSQL connection string. Compose builds the local URL from the `POSTGRES_*` values; the demo config points to its database host. |
+| `SESSION_SECRET` | Backend | Secret used to sign sessions. Keep the real value private. |
+| `CLIENT_URL` | Backend | Frontend origin allowed by CORS. |
+| `GOOGLE_CLIENT_ID` | Backend | OAuth audience used to verify Google credentials. |
+| `VITE_API_URL` | Frontend (Vite) | Backend API base URL embedded in the frontend bundle. |
+| `VITE_GOOGLE_CLIENT_ID` | Frontend (Vite) | Public Google OAuth client ID; use the same client ID as `GOOGLE_CLIENT_ID`. |
+
+`frontend/.env` and `frontend/.env.demo` are ignored local files. The backend `.env` variants are also ignored; only the `.example` templates are committed.
 
 ## License
 
