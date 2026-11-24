@@ -106,6 +106,23 @@ http://localhost:5173
 
 The database initialization script is automatically executed when PostgreSQL initializes a new, empty data directory.
 
+## Backend Image Size
+
+Measure the local backend image with:
+
+```bash
+docker build -t eventtracker-backend:lean -f backend/Dockerfile backend
+docker image ls --filter reference=eventtracker-backend:lean --format "{{.Repository}}:{{.Tag}} {{.Size}}"
+```
+
+On Docker Engine 29.5.2, this image measured **272MB**. A fresh build of the previous Dockerfile on the same host measured **294MB**. These are local Docker image sizes, not compressed download sizes or pull-time estimates.
+
+The pinned Node.js 22 Alpine runtime is the largest layer (`163MB` in `docker history`); required production dependencies add `26.4MB`. The image keeps that runtime because the backend needs Node.js. There is no compile step, so no build toolchain is installed. `npm ci --omit=dev` leaves out development tools such as `nodemon`; unused MongoDB session support is removed from production dependencies, while the legacy Mongoose models remain available for development. The Docker build context and final image also exclude `models/`, `tests/`, and `config/schema.sql`; Compose mounts the schema into PostgreSQL separately.
+
+The README startup command above was run with the optimized image, and `/health` returned a healthy response with PostgreSQL connected. **Campus classmate pull: not measured.** No pull duration is claimed.
+
+An image that is smaller but cannot start is not lean for this application; working startup is required.
+
 ## Project Structure
 
 ```text

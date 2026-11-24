@@ -8,7 +8,10 @@ COPY package.json package-lock.json ./
 
 RUN npm ci --omit=dev
 
-COPY . .
+COPY index.js ./
+COPY config/ ./config/
+COPY routes/ ./routes/
+COPY utils/ ./utils/
 
 ENV PORT=5000
 
