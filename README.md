@@ -141,6 +141,68 @@ EventTracker/
 └── package.json
 ```
 
+Removing the named volume deletes the stored database data.
+
+## Testing the Application
+
+Verify the main application workflow manually:
+
+1. Sign in using Google OAuth.
+2. Confirm that the user is authenticated.
+3. Create an event board.
+4. Confirm that the board appears on the dashboard.
+5. Copy the board's invitation code.
+6. Sign in using another account.
+7. Join the board using the invitation code.
+8. Confirm that the joined user can view the same board and its members.
+9. Create a duty as the organiser.
+10. Assign the duty to the volunteer account.
+11. Confirm that the volunteer can view the assigned duty.
+12. Update the duty description and status as the assigned volunteer.
+13. Confirm that the volunteer cannot edit restricted fields or delete the duty.
+14. Confirm that the organiser can edit and delete duties.
+15. Refresh the application and verify that authentication and saved data behave correctly.
+16. Restart the application and PostgreSQL container while retaining the named volume, then confirm that saved data remains available.
+
+## Project Scope
+
+The MVP focuses on:
+
+- Google OAuth authentication.
+- User identification.
+- Board creation and management.
+- Volunteer invitations through unique invitation codes.
+- Board membership and permissions.
+- Duty creation and assignment.
+- Duty status tracking.
+- Duty updates by assigned volunteers.
+- PostgreSQL relational data storage.
+- PostgreSQL-backed session management.
+- Persistent database storage through Docker volumes.
+
+The following features are outside the initial MVP scope:
+
+- AI-based volunteer assignment.
+- Automated notifications.
+- Volunteer attendance tracking.
+- Payment management.
+- Advanced analytics.
+- Automated scheduling.
+- Real-time chat.
+- Dedicated mobile application.
+- File attachments.
+- Multiple volunteers assigned to one duty.
+- Separate written progress-update history.
+
+## Incident Tracking
+
+The [team board](Docs/team-board.md) tracks the reported sign-in redirect incident. The report is based on the behavior described by the team and has not yet been independently reproduced. Use the [workflow submission checklist](Docs/workflow-submission.md) when preparing a branch, pull request, teammate review, and recording.
+
+## Demo Link
+
+**Live Demo:** Add your deployed application URL once deployment is complete.
+
+## Project Board
 ## Environment and Security
 
 - Environment variables are used to configure ports and database credentials.
