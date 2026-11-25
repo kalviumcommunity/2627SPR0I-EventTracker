@@ -1,3 +1,4 @@
+## Getting Started
 # EventTracker
 
 EventTracker is a web application for managing volunteer duties during campus events. It provides organisers and volunteers with a centralized platform to create event boards, manage duties, track task progress, and view updates.
