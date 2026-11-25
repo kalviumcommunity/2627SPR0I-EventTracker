@@ -45,17 +45,18 @@ cp frontend/.env.example frontend/.env
 
 Set `VITE_GOOGLE_CLIENT_ID` to the Google OAuth client ID used by the backend. Vite embeds `VITE_*` values into the frontend bundle; do not put secrets in frontend env files.
 
-### 3. Start the Backend and Database
+### 3. Build the Backend Image and Start the Backend and Database
 
-Build and start with the local backend config from the project root:
+Build the backend image once, then start the local backend and database with the local config:
 
 ```bash
-docker compose --env-file backend/.env up --build -d
+docker compose --env-file backend/.env build app
+docker compose --env-file backend/.env up --no-build -d
 ```
 
-This single command builds and starts both services:
+The first command creates `eventtracker-backend:lean`. The second starts both services using that image:
 
-- **app:** Builds and runs the EventTracker backend.
+- **app:** Runs the EventTracker backend from the image built in the previous command.
 - **postgres:** Runs the PostgreSQL database.
 
 The backend waits for PostgreSQL to become healthy before starting.
@@ -95,7 +96,8 @@ http://localhost:5173
 
 | Command | Description |
 |---|---|
-| `docker compose --env-file backend/.env up --build -d` | Build and start the backend and PostgreSQL services |
+| `docker compose --env-file backend/.env build app` | Build the backend image once |
+| `docker compose --env-file backend/.env up --no-build -d` | Start the backend and PostgreSQL services using the existing image |
 | `docker compose --env-file backend/.env ps` | Check service status |
 | `docker compose --env-file backend/.env logs -f` | View service logs |
 | `docker compose --env-file backend/.env logs -f app` | View backend logs |
@@ -108,15 +110,15 @@ The database initialization script is automatically executed when PostgreSQL ini
 
 ## Local and Demo Configuration
 
-The backend image is tagged `eventtracker-backend:lean`. Build it once using the local Compose command above. To run that same image against a demo-host database, copy `backend/.env.demo.example` to the ignored `backend/.env.demo`, replace its placeholders with the demo host's private values, and run:
+The backend image is tagged `eventtracker-backend:lean`. The local Compose commands above build it once and start it with `backend/.env`. To run that exact same image against a demo-host database, copy `backend/.env.demo.example` to the ignored `backend/.env.demo`, replace its placeholders with the demo host's private values, then run:
 
 ```bash
 docker run --rm --env-file backend/.env.demo -p 5000:5000 eventtracker-backend:lean
 ```
 
-This command does not build an image. The image reads `DATABASE_URL`, `CLIENT_URL`, `SESSION_SECRET`, and `GOOGLE_CLIENT_ID` at container startup, so local and demo settings can differ without changing the image. Keep the demo config out of Git. If a campus-specific endpoint is needed, use another ignored config file with the same image.
+This command does not build an image. `DATABASE_URL`, `CLIENT_URL`, `SESSION_SECRET`, and `GOOGLE_CLIENT_ID` are supplied to the backend at container startup, not baked into the image; use different ignored config files to run the same image locally and on the demo host. Keep private database URLs and secrets out of Git. If the incident has a campus-specific endpoint, use another ignored config file with the same image rather than building another image.
 
-The frontend has a separate `frontend/.env.demo.example` for its demo API URL and OAuth client ID. Copy it to `frontend/.env.demo` and build the frontend with `npm run build -- --mode demo`. Vite embeds these public `VITE_*` values at frontend build time; this does not rebuild the backend image.
+The frontend has a separate `frontend/.env.demo.example` for its demo API URL and OAuth client ID. Copy it to `frontend/.env.demo` and build the frontend with `npm run build -- --mode demo`. Unlike backend settings, Vite embeds public `VITE_*` values such as `VITE_API_URL` into the frontend bundle at build time; this does not rebuild the backend image.
 
 ## Backend Image Size
 
