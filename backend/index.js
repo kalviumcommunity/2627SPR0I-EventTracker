@@ -1,5 +1,28 @@
 require("dotenv").config();
 
+// Validate required environment variables before startup
+const requiredEnvVars = [
+  "DATABASE_URL",
+  "SESSION_SECRET",
+  "CLIENT_URL",
+  "GOOGLE_CLIENT_ID",
+];
+
+const missingEnvVars = requiredEnvVars.filter(
+  (variable) =>
+    !process.env[variable] || !process.env[variable].trim()
+);
+
+if (missingEnvVars.length > 0) {
+  console.error("Startup failed: Missing required environment variables:");
+
+  missingEnvVars.forEach((variable) => {
+    console.error(`- ${variable}`);
+  });
+
+  process.exit(1);
+}
+
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
