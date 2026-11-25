@@ -206,11 +206,26 @@ The [team board](Docs/team-board.md) tracks the reported sign-in redirect incide
 ## Project Board
 ## Environment and Security
 
-- Environment variables are used to configure ports and database credentials.
-- Actual environment files are excluded from Git.
-- Docker Compose provides the PostgreSQL service to the backend.
-- The backend connects to PostgreSQL using the Compose service name `postgres`.
-- Database credentials are not hardcoded into the application configuration.
+### Where runtime secrets live
+
+For a deployed app, store sensitive values such as `DATABASE_URL` (which includes the database password) and `SESSION_SECRET` in the **faculty-host secret settings** and inject them into the backend at runtime. `GOOGLE_CLIENT_ID` is a client identifier, not a secret; configure it for the backend runtime without putting credentials in frontend `VITE_*` variables. Use a GitHub Actions secret only if a workflow needs a credential; CI secrets are not the deployed app's runtime secret store.
+
+The committed [backend example config](backend/.env.example) uses placeholder credentials. Copy it for local development and replace the placeholders in your ignored `backend/.env`. The backend `.gitignore` ignores `.env` and `.env.*` runtime files while allowing `.env.example` templates. A `.gitignore` rule only prevents an untracked file from being added by normal `git add`; it does not remove a file already tracked or erase it from prior commits.
+
+### Check Git history for committed env files
+
+Fetch current remote branch references, then check every available ref's history for runtime `.env` files (the command lists commit IDs and file paths, not file contents):
+
+```bash
+git fetch --all --prune
+git log --all --full-history --format="%h %s" --name-status -- ":(glob)**/.env" ":(glob)**/.env.*" ":(exclude,glob)**/*.example"
+```
+
+This is a no-cost history check for files named `.env` or `.env.*`, including files later deleted; it excludes `.example` templates. It is not a full secret scanner: it misses secrets pasted into other filenames, unusual or encoded formats, and commits not reachable from refs fetched into this clone (including other clones and forks). A clean result does not prove a secret was never committed.
+
+If the check or a teammate finds a real secret in any commit, do not paste it into the pull request or rewrite shared history yourself. Tell the mentor and rotate/revoke it immediately; deleting it from the latest commit or adding it to `.gitignore` does not remove it from earlier commits.
+
+**Question: “I deleted the password from the latest commit. Is the secret out of Git?” No.** Earlier commits can still contain it, so treat it as exposed, tell the mentor, and rotate it.
 
 ## License
 
