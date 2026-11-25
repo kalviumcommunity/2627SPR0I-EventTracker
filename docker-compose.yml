@@ -18,6 +18,7 @@ services:
       retries: 10
 
   app:
+    image: eventtracker-backend:lean
     build:
       context: ./backend
       dockerfile: Dockerfile
