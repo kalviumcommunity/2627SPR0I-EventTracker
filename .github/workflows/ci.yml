@@ -64,3 +64,6 @@ jobs:
 
       - name: Check backend syntax
         run: node --check index.js
+
+      - name: Check for committed secrets
+        run: npm run check:secrets

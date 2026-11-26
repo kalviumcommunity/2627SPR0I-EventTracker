@@ -28,7 +28,12 @@ const cors = require("cors");
 const session = require("express-session");
 const PgSession = require("connect-pg-simple")(session);
 
-const { pool, connectDB } = require("./config/db");
+const {
+  pool,
+  connectDB,
+  probeDatabase,
+  logDatabaseFailure,
+} = require("./config/db");
 
 const authRoutes = require("./routes/auth");
 const boardRoutes = require("./routes/boards");
@@ -77,13 +82,15 @@ app.use("/duties", dutyRoutes);
 // Health check
 app.get("/health", async (req, res) => {
   try {
-    await pool.query("SELECT 1");
+    await probeDatabase();
 
     res.json({
       status: "healthy",
       message: "EventTracker backend and PostgreSQL are connected!",
     });
   } catch (error) {
+    logDatabaseFailure(error);
+
     res.status(503).json({
       status: "unhealthy",
       message: "Database connection unavailable",
